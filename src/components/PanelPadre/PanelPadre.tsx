@@ -58,9 +58,16 @@ export const PanelPadre: React.FC<PanelPadreProps> = ({ familia, isNightTime }) 
 
   const selectedHijo = familia.hijos.find((h) => h.id === selectedHijoId) || familia.hijos[0];
 
-  const currentHorario: HorarioDiarioHijo | undefined = horariosDiarios.find(
-    (h) => h.idAlumno === selectedHijo?.id && h.fecha === todayStr
-  );
+  const cleanChildName = (selectedHijo?.nombre || '').trim().toLowerCase();
+
+  const currentHorario: HorarioDiarioHijo | undefined =
+    horariosDiarios.find(
+      (h: any) =>
+        (h.idAlumno === selectedHijo?.id ||
+          (cleanChildName && h.nombreAlumno && String(h.nombreAlumno).trim().toLowerCase() === cleanChildName)) &&
+        h.fecha === todayStr
+    ) ||
+    apiService.getUltimoHorarioConfirmado(selectedHijo?.id || '', selectedHijo?.nombre);
 
   // Sincronizar selección borrador cuando cambia el hijo seleccionado o cuando carga el horario
   useEffect(() => {
@@ -68,22 +75,24 @@ export const PanelPadre: React.FC<PanelPadreProps> = ({ familia, isNightTime }) 
       setDraftBarrio(currentHorario.usaIda ? currentHorario.horarioBarrio : 'NO_USA');
       setDraftCiudad(currentHorario.usaVuelta ? currentHorario.horarioCiudad : 'NO_USA');
     } else {
-      setDraftBarrio('06:25');
+      setDraftBarrio('07:20');
       setDraftCiudad('12:10');
     }
   }, [selectedHijoId, currentHorario]);
 
   // Buscar si la encargada ya marcó el check-in (subida) de este niño hoy
   const checkinIda = checkins.find(
-    (c) =>
-      c.idAlumno === selectedHijo?.id &&
+    (c: any) =>
+      (c.idAlumno === selectedHijo?.id ||
+        (cleanChildName && c.nombreAlumno && String(c.nombreAlumno).trim().toLowerCase() === cleanChildName)) &&
       c.sentido === 'SALIDA_BARRIO' &&
       c.fecha === todayStr
   );
 
   const checkinVuelta = checkins.find(
-    (c) =>
-      c.idAlumno === selectedHijo?.id &&
+    (c: any) =>
+      (c.idAlumno === selectedHijo?.id ||
+        (cleanChildName && c.nombreAlumno && String(c.nombreAlumno).trim().toLowerCase() === cleanChildName)) &&
       c.sentido === 'SALIDA_CIUDAD' &&
       c.fecha === todayStr
   );
@@ -117,6 +126,8 @@ export const PanelPadre: React.FC<PanelPadreProps> = ({ familia, isNightTime }) 
 
     const updated: HorarioDiarioHijo = {
       idAlumno: selectedHijo.id,
+      nombreAlumno: selectedHijo.nombre,
+      parada: familia.paradaFija,
       fecha: todayStr,
       horarioBarrio: draftBarrio,
       horarioCiudad: draftCiudad,

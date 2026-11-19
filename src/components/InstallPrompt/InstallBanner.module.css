@@ -1,0 +1,81 @@
+/* ==========================================================================
+   INSTALL BANNER - CSS MODULE (BEM)
+   ========================================================================== */
+
+.installBanner {
+  background: linear-gradient(135deg, #1e3a8a, #0d9488);
+  color: var(--color-text-white);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  box-shadow: var(--shadow-md);
+  animation: fadeIn 300ms ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.installBanner__content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.installBanner__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background-color: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.installBanner__text {
+  display: flex;
+  flex-direction: column;
+}
+
+.installBanner__title {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-sm);
+}
+
+.installBanner__desc {
+  font-size: var(--font-size-xs);
+  opacity: 0.9;
+}
+
+.installBanner__btn {
+  background-color: #ffffff;
+  color: var(--color-primary);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-sm);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-xs);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+}
+
+.installBanner__btn:hover {
+  background-color: #f1f5f9;
+  transform: translateY(-1px);
+}

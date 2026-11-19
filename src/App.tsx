@@ -9,7 +9,9 @@ import { RegistroPersonal } from './components/RegistroPersonal/RegistroPersonal
 import { PanelPadre } from './components/PanelPadre/PanelPadre';
 import { PanelEncargada } from './components/PanelEncargada/PanelEncargada';
 import { PanelEncargadoRecorrido } from './components/PanelEncargadoRecorrido/PanelEncargadoRecorrido';
+import { PanelSuperAdmin } from './components/PanelSuperAdmin/PanelSuperAdmin';
 import { BackendModal } from './components/BackendModal/BackendModal';
+import { InstallBanner } from './components/InstallPrompt/InstallBanner';
 
 export const App: React.FC = () => {
   const [currentRole, setCurrentRole] = useState<UserRole | null>(null);
@@ -27,7 +29,7 @@ export const App: React.FC = () => {
   const [backendStatus, setBackendStatus] = useState<BackendStatus>({
     online: true,
     mode: 'APPS_SCRIPT',
-    latencyMs: 15,
+    latencyMs: 12,
     message: 'Google Apps Script conectado.'
   });
 
@@ -45,9 +47,16 @@ export const App: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Sincronización automática con Google Sheets al iniciar la app
   useEffect(() => {
     apiService.checkHealth().then((status) => {
       setBackendStatus(status);
+    });
+
+    apiService.syncWithBackend().then((success) => {
+      if (success) {
+        console.log('Datos sincronizados con Google Sheets con éxito.');
+      }
     });
   }, []);
 
@@ -102,6 +111,9 @@ export const App: React.FC = () => {
       />
 
       <main className={styles.app__main}>
+        {/* Banner destacado para instalar la PWA en celular o PC */}
+        <InstallBanner />
+
         {/* Caso 1: Pantalla de Registro de Padre */}
         {isRegisteringPadre ? (
           <RegistroPadre
@@ -143,9 +155,8 @@ export const App: React.FC = () => {
             }}
           />
         ) : currentRole === 'SUPERADMIN' ? (
-          /* Caso 7: Panel del SuperAdmin (control y eliminación total) */
-          <PanelEncargadoRecorrido
-            isSuperAdmin={true}
+          /* Caso 7: Panel del SuperAdmin con Control y Eliminación Total */
+          <PanelSuperAdmin
             onOpenRegisterPersonal={() => {
               setDefaultPersonalRole('ENCARGADA_CONTROL');
               setIsRegisteringPersonal(true);
@@ -167,11 +178,12 @@ export const App: React.FC = () => {
       <footer className={styles.app__footer}>
         <div className={styles.app__footerContainer}>
           <span>
-            Recorrido Escolar • Control de Transporte Escolar Tala
+            Control de Transporte Escolar Tala • © 2026 Todos los derechos reservados
           </span>
-          <span>
-            Desarrollado con Google Apps Script & Sheets • Seguro, gratuito y sin servidores
-          </span>
+          <div className={styles.app__footerBranding}>
+            <span>Desarrollado por <strong>KSM Servicios</strong></span>
+            <img src="/ksm.png" alt="KSM Servicios" className={styles.app__footerLogo} />
+          </div>
         </div>
       </footer>
 

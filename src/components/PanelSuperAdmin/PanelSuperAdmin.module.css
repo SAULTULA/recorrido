@@ -1,0 +1,160 @@
+/* ==========================================================================
+   PANEL SUPERADMIN - CSS MODULE (BEM)
+   ========================================================================== */
+
+.superAdmin {
+  max-width: 1100px;
+  margin: var(--spacing-xl) auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.superAdmin__header {
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: var(--color-text-white);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  box-shadow: var(--shadow-md);
+}
+
+.superAdmin__titleGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.superAdmin__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.superAdmin__title {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.superAdmin__subtitle {
+  font-size: var(--font-size-xs);
+  opacity: 0.8;
+}
+
+.superAdmin__navTabs {
+  display: flex;
+  gap: var(--spacing-xs);
+  border-bottom: 2px solid var(--color-border);
+  overflow-x: auto;
+}
+
+.superAdmin__navTab {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-bottom: none;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+}
+
+.superAdmin__navTab--active {
+  background-color: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+  border-bottom: 3px solid #ef4444;
+  margin-bottom: -2px;
+}
+
+.superAdmin__card {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.superAdmin__cardHeader {
+  padding: var(--spacing-md) var(--spacing-lg);
+  background-color: var(--color-bg-subtle);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.superAdmin__tableWrap {
+  overflow-x: auto;
+}
+
+.superAdmin__table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: var(--font-size-sm);
+}
+
+.superAdmin__table th {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--color-bg-subtle);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-bold);
+  white-space: nowrap;
+}
+
+.superAdmin__table td {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+
+.superAdmin__btnDelete {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+  padding: 5px 10px;
+  border-radius: var(--radius-xs);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.superAdmin__btnDelete:hover {
+  background-color: #dc2626;
+  color: #ffffff;
+}
+
+.superAdmin__btnAction {
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}

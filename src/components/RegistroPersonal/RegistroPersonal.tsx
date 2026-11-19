@@ -124,3 +124,4 @@ export const RegistroPersonal: React.FC<RegistroPersonalProps> = ({
     </div>
   );
 };
+

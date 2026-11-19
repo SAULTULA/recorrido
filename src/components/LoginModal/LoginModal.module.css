@@ -3,8 +3,8 @@
    ========================================================================== */
 
 .loginModal {
-  max-width: 480px;
-  margin: var(--spacing-2xl) auto;
+  max-width: 520px;
+  margin: var(--spacing-xl) auto;
   background-color: var(--color-bg-card);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xl);
@@ -15,7 +15,7 @@
 .loginModal__header {
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
   color: var(--color-text-white);
-  padding: var(--spacing-xl) var(--spacing-lg);
+  padding: var(--spacing-lg);
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -24,8 +24,8 @@
 }
 
 .loginModal__icon {
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
   background-color: rgba(255, 255, 255, 0.15);
   border-radius: var(--radius-full);
   display: flex;
@@ -45,8 +45,36 @@
   opacity: 0.9;
 }
 
+/* Tabs Superiores: Iniciar Sesión vs Registrarse */
+.loginModal__topTabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background-color: var(--color-bg-subtle);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.loginModal__topTab {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all var(--transition-fast);
+}
+
+.loginModal__topTab--active {
+  color: var(--color-primary);
+  background-color: var(--color-bg-card);
+  border-bottom-color: var(--color-primary);
+}
+
 .loginModal__form {
-  padding: var(--spacing-xl) var(--spacing-lg);
+  padding: var(--spacing-lg);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
@@ -80,14 +108,15 @@
 
 .loginModal__roleGrid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: var(--spacing-xs);
 }
 
 .loginModal__roleOption {
   display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-2xs);
   padding: var(--spacing-sm);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
@@ -109,8 +138,8 @@
 }
 
 .loginModal__roleIcon {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: var(--radius-sm);
   background-color: var(--color-bg-subtle);
   display: flex;
@@ -124,23 +153,13 @@
   color: var(--color-text-white);
 }
 
-.loginModal__roleText {
-  display: flex;
-  flex-direction: column;
-}
-
 .loginModal__roleTitle {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-bold);
 }
 
-.loginModal__roleDesc {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-light);
-}
-
 .loginModal__btnSubmit {
-  margin-top: var(--spacing-sm);
+  margin-top: var(--spacing-xs);
   padding: var(--spacing-md);
   background-color: var(--color-primary);
   color: var(--color-text-white);
@@ -151,6 +170,7 @@
   align-items: center;
   justify-content: center;
   gap: var(--spacing-xs);
+  cursor: pointer;
   transition: background-color var(--transition-fast);
 }
 
@@ -158,53 +178,58 @@
   background-color: var(--color-primary-hover);
 }
 
-.loginModal__btnRegister {
-  padding: var(--spacing-sm);
-  color: var(--color-primary);
-  text-align: center;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-}
-
-.loginModal__btnRegister:hover {
-  text-decoration: underline;
-}
-
-.loginModal__quickAccess {
-  margin-top: var(--spacing-sm);
-  padding-top: var(--spacing-sm);
-  border-top: 1px dashed var(--color-border);
+/* Opciones de Registro */
+.loginModal__registerChoices {
+  padding: var(--spacing-lg);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: var(--spacing-md);
 }
 
-.loginModal__quickTitle {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-light);
-  font-weight: var(--font-weight-semibold);
-  text-transform: uppercase;
-}
-
-.loginModal__quickBtns {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-xs);
-}
-
-.loginModal__quickBtn {
-  font-size: var(--font-size-xs);
-  padding: var(--spacing-2xs) var(--spacing-xs);
-  background-color: var(--color-bg-subtle);
-  border-radius: var(--radius-xs);
+.loginModal__regCard {
   border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  background-color: var(--color-bg-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.loginModal__regCard:hover {
+  background-color: var(--color-primary-light);
+  border-color: var(--color-primary-border);
+  transform: translateY(-1px);
+}
+
+.loginModal__regCardIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background-color: var(--color-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.loginModal__regCardText {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.loginModal__regCardTitle {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-main);
+}
+
+.loginModal__regCardDesc {
+  font-size: var(--font-size-xs);
   color: var(--color-text-muted);
 }
-
-.loginModal__quickBtn:hover {
-  background-color: var(--color-primary-light);
-  color: var(--color-primary);
-  border-color: var(--color-primary-border);
-}
-

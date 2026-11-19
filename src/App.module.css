@@ -21,9 +21,8 @@
   background-color: var(--color-bg-card);
   border-top: 1px solid var(--color-border);
   padding: var(--spacing-md);
-  text-align: center;
   font-size: var(--font-size-xs);
-  color: var(--color-text-light);
+  color: var(--color-text-muted);
 }
 
 .app__footerContainer {
@@ -36,3 +35,16 @@
   gap: var(--spacing-sm);
 }
 
+.app__footerBranding {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
+}
+
+.app__footerLogo {
+  height: 24px;
+  width: auto;
+  object-fit: contain;
+  vertical-align: middle;
+}

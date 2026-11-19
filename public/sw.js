@@ -1,7 +1,5 @@
-const CACHE_NAME = 'recorrido-tala-v1';
-const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
+const CACHE_NAME = 'recorrido-tala-v2';
+const STATIC_ASSETS = [
   '/manifest.json',
   '/icon.svg',
   '/icon-192.png',
@@ -11,7 +9,7 @@ const ASSETS_TO_CACHE = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
+      return cache.addAll(STATIC_ASSETS);
     })
   );
   self.skipWaiting();
@@ -33,24 +31,39 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Ignorar peticiones a Google Apps Script para no cachear datos dinámicos en vivo
+  // Ignorar llamadas al backend de Google Apps Script
   if (event.request.url.includes('script.google.com')) {
     return;
   }
 
+  // Network-First para navegación (HTML) para que siempre cargue la última versión desplegada
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          return response;
+        })
+        .catch(() => {
+          return caches.match('/index.html');
+        })
+    );
+    return;
+  }
+
+  // Stale-while-revalidate para recursos estáticos
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(event.request).then((networkResponse) => {
-        return networkResponse;
-      }).catch(() => {
-        // Fallback offline
-        if (event.request.mode === 'navigate') {
-          return caches.match('/index.html');
+      const fetchPromise = fetch(event.request).then((networkResponse) => {
+        if (networkResponse.status === 200) {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
         }
-      });
+        return networkResponse;
+      }).catch(() => cachedResponse);
+
+      return cachedResponse || fetchPromise;
     })
   );
 });

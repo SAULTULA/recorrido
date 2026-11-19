@@ -89,6 +89,8 @@ export type SentidoRecorrido = 'SALIDA_BARRIO' | 'SALIDA_CIUDAD';
 
 export interface HorarioDiarioHijo {
   idAlumno: string;
+  nombreAlumno?: string;
+  parada?: string;
   fecha: string; // YYYY-MM-DD
   horarioBarrio: string | 'NO_USA'; // Salida desde Barrio (Ida)
   horarioCiudad: string | 'NO_USA'; // Salida de la Ciudad (Vuelta)

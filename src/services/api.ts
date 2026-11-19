@@ -4,7 +4,8 @@ import {
   CheckInSubida,
   AvisoAlerta,
   BackendStatus,
-  PersonalStaff
+  PersonalStaff,
+  Hijo
 } from '../types';
 
 const STORAGE_KEYS = {
@@ -33,6 +34,31 @@ export function getCurrentTimeStr(): string {
   const h = String(d.getHours()).padStart(2, '0');
   const m = String(d.getMinutes()).padStart(2, '0');
   return `${h}:${m}`;
+}
+
+/**
+ * Normaliza horas que Google Sheets o Apps Script devuelven como fechas ISO (ej: 1899-12-30T10:41:48.000Z)
+ */
+export function normalizeTimeString(val: any): string {
+  if (!val) return '';
+  const str = String(val).trim();
+  if (str === 'NO_USA') return 'NO_USA';
+  if (str.includes('T') && (str.endsWith('Z') || str.includes('+') || str.includes('-'))) {
+    try {
+      const d = new Date(str);
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleTimeString('es-AR', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+          timeZone: 'America/Argentina/Buenos_Aires'
+        });
+      }
+    } catch {
+      // Fallback
+    }
+  }
+  return str.replace(/'/g, '').trim();
 }
 
 const DEFAULT_BACKEND_URL =
@@ -72,8 +98,8 @@ export const apiService = {
         online: true,
         mode: 'LOCAL_MOCK',
         timestamp: new Date().toISOString(),
-        latencyMs: 12,
-        message: 'Modo local activo (persistente en almacenamiento de navegador). Configura Google Apps Script para sincronizar en la nube.'
+        latencyMs: 10,
+        message: 'Modo local activo.'
       };
     }
 
@@ -112,8 +138,125 @@ export const apiService = {
         mode: 'APPS_SCRIPT',
         url,
         latencyMs,
-        message: `Fallo de conexión: ${err.message || 'Verifique los permisos de "Anyone" en Apps Script'}`
+        message: `Fallo de conexión: ${err.message || 'Verifique conexión'}`
       };
+    }
+  },
+
+  /**
+   * Sincroniza todos los datos desde Google Sheets hacia el navegador
+   */
+  async syncWithBackend(): Promise<boolean> {
+    const url = this.getBackendUrl();
+    if (!url) return false;
+
+    try {
+      const endpoint = url.includes('?') ? `${url}&action=getAllData` : `${url}?action=getAllData`;
+      const res = await fetch(endpoint, {
+        method: 'GET',
+        headers: { Accept: 'application/json' },
+        mode: 'cors'
+      });
+
+      if (!res.ok) return false;
+
+      const data = await res.json();
+
+      // 1. Reconstruir familias y alumnos
+      if (data.familias && Array.isArray(data.familias)) {
+        const alumnosRaw = Array.isArray(data.alumnos) ? data.alumnos : [];
+        const reconstructedFamilias: Familia[] = data.familias.map((f: any) => {
+          const hijosFam: Hijo[] = alumnosRaw
+            .filter((a: any) => String(a.ID_Familia || a.idFamilia).trim() === String(f.ID_Familia || f.id).trim())
+            .map((a: any) => ({
+              id: a.ID_Alumno || a.id,
+              idFamilia: f.ID_Familia || f.id,
+              nombre: a.Nombre_Alumno || a.nombre,
+              dni: a.DNI_Alumno || a.dni || '',
+              escuela: a.Escuela || a.escuela,
+              grado: a.Grado || a.grado || '',
+              turno: a.Turno || a.turno || 'Ambos'
+            }));
+
+          return {
+            id: f.ID_Familia || f.id,
+            nombreTutor: f.Nombre_Tutor || f.nombreTutor,
+            dni: String(f.DNI || f.dni).trim(),
+            jerarquia: f.Jerarquia || f.jerarquia || 'Suboficial',
+            celular: String(f.Celular || f.celular).trim(),
+            numeroCasa: String(f.Numero_Casa || f.numeroCasa || '').trim(),
+            paradaFija: f.Parada_Fija || f.paradaFija,
+            fechaRegistro: f.Fecha_Registro || f.fechaRegistro || getTodayDateStr(),
+            hijos: hijosFam
+          };
+        });
+
+        localStorage.setItem(STORAGE_KEYS.FAMILIAS, JSON.stringify(reconstructedFamilias));
+      }
+
+      // 2. Personal
+      if (data.personal && Array.isArray(data.personal)) {
+        const mappedPersonal: PersonalStaff[] = data.personal.map((p: any) => ({
+          id: p.ID_Personal || p.id,
+          nombre: p.Nombre || p.nombre,
+          dni: String(p.DNI || p.dni).trim(),
+          celular: String(p.Celular || p.celular).trim(),
+          rol: p.Rol || p.rol,
+          fechaRegistro: p.Fecha_Alta || p.fechaRegistro || getTodayDateStr()
+        }));
+        localStorage.setItem(STORAGE_KEYS.PERSONAL, JSON.stringify(mappedPersonal));
+      }
+
+      // 3. Horarios diarios
+      if (data.diario && Array.isArray(data.diario)) {
+        const mappedDiario: HorarioDiarioHijo[] = data.diario.map((d: any) => ({
+          idAlumno: d.ID_Alumno || d.idAlumno,
+          fecha: d.Fecha ? String(d.Fecha).split('T')[0] : getTodayDateStr(),
+          horarioBarrio: normalizeTimeString(d.Horario_Barrio || d.horarioBarrio),
+          horarioCiudad: normalizeTimeString(d.Horario_Ciudad || d.horarioCiudad),
+          usaIda: d.Usa_Ida === 'SI' || d.usaIda === true,
+          usaVuelta: d.Usa_Vuelta === 'SI' || d.usaVuelta === true,
+          ultimaModificacion: d.Ultima_Modificacion || d.ultimaModificacion
+        }));
+        localStorage.setItem(STORAGE_KEYS.HORARIOS, JSON.stringify(mappedDiario));
+      }
+
+      // 4. CheckIns
+      if (data.checkins && Array.isArray(data.checkins)) {
+        const mappedCheckins: CheckInSubida[] = data.checkins.map((c: any) => ({
+          id: c.ID_CheckIn || c.id,
+          fecha: c.Fecha ? String(c.Fecha).split('T')[0] : getTodayDateStr(),
+          idAlumno: c.ID_Alumno || c.idAlumno,
+          nombreAlumno: c.Nombre_Alumno || c.nombreAlumno,
+          sentido: c.Sentido || c.sentido,
+          horario: normalizeTimeString(c.Horario || c.horario),
+          parada: c.Parada || c.parada,
+          horaMarcado: normalizeTimeString(c.Hora_Marcado || c.horaMarcado),
+          responsableControl: c.Responsable_Control || c.responsableControl
+        }));
+        localStorage.setItem(STORAGE_KEYS.CHECKINS, JSON.stringify(mappedCheckins));
+      }
+
+      // 5. Avisos
+      if (data.avisos && Array.isArray(data.avisos)) {
+        const mappedAvisos: AvisoAlerta[] = data.avisos.map((a: any) => ({
+          id: a.ID_Aviso || a.id,
+          fecha: a.Fecha ? String(a.Fecha).split('T')[0] : getTodayDateStr(),
+          idAlumno: a.ID_Alumno || a.idAlumno,
+          nombreAlumno: a.Nombre_Alumno || a.nombreAlumno,
+          tipo: a.Tipo || a.tipo,
+          detalle: a.Detalle || a.detalle,
+          horarioAfectado: a.Horario_Afectado || a.horarioAfectado || '',
+          horaRegistro: normalizeTimeString(a.Hora_Registro || a.horaRegistro),
+          leido: a.Leido === 'SI' || a.leido === true
+        }));
+        localStorage.setItem(STORAGE_KEYS.AVISOS, JSON.stringify(mappedAvisos));
+      }
+
+      return true;
+    } catch (e) {
+      console.warn('Error sincronizando con Google Apps Script:', e);
+      return false;
     }
   },
 
@@ -137,7 +280,6 @@ export const apiService = {
     }
     localStorage.setItem(STORAGE_KEYS.FAMILIAS, JSON.stringify(familias));
 
-    // Si hay Apps Script configurado, enviarlo en background
     const url = this.getBackendUrl();
     if (url) {
       fetch(url, {
@@ -148,13 +290,26 @@ export const apiService = {
           data: familia
         }),
         mode: 'no-cors'
-      }).catch((e) => console.warn('Error syncing with Apps Script:', e));
+      }).catch((e) => console.warn('Error syncing familia with Apps Script:', e));
     }
   },
 
   deleteFamilia(id: string): void {
     const familias = this.getFamilias().filter((f) => f.id !== id);
     localStorage.setItem(STORAGE_KEYS.FAMILIAS, JSON.stringify(familias));
+
+    const url = this.getBackendUrl();
+    if (url) {
+      fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'eliminarFamilia',
+          idFamilia: id
+        }),
+        mode: 'no-cors'
+      }).catch((e) => console.warn('Error deleting familia on Apps Script:', e));
+    }
   },
 
   getPersonal(): PersonalStaff[] {
@@ -176,11 +331,37 @@ export const apiService = {
       list.push(staff);
     }
     localStorage.setItem(STORAGE_KEYS.PERSONAL, JSON.stringify(list));
+
+    const url = this.getBackendUrl();
+    if (url) {
+      fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'registrarPersonal',
+          data: staff
+        }),
+        mode: 'no-cors'
+      }).catch((e) => console.warn('Error syncing personal with Apps Script:', e));
+    }
   },
 
   deletePersonal(id: string): void {
     const list = this.getPersonal().filter((s) => s.id !== id);
     localStorage.setItem(STORAGE_KEYS.PERSONAL, JSON.stringify(list));
+
+    const url = this.getBackendUrl();
+    if (url) {
+      fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'eliminarPersonal',
+          idPersonal: id
+        }),
+        mode: 'no-cors'
+      }).catch((e) => console.warn('Error deleting personal on Apps Script:', e));
+    }
   },
 
   checkAdminPassword(pass: string): boolean {
@@ -195,7 +376,36 @@ export const apiService = {
   getHorariosDiarios(fecha: string = getTodayDateStr()): HorarioDiarioHijo[] {
     const raw = localStorage.getItem(STORAGE_KEYS.HORARIOS);
     const list: HorarioDiarioHijo[] = raw ? JSON.parse(raw) : [];
-    return list.filter((h) => h.fecha === fecha);
+    // Retornar los del día actual normalizados
+    return list
+      .filter((h) => h.fecha === fecha)
+      .map((h) => ({
+        ...h,
+        horarioBarrio: normalizeTimeString(h.horarioBarrio),
+        horarioCiudad: normalizeTimeString(h.horarioCiudad)
+      }));
+  },
+
+  /**
+   * Obtiene el último horario confirmado para un alumno independientemente de la fecha
+   */
+  getUltimoHorarioConfirmado(idAlumno: string, nombreAlumno?: string): HorarioDiarioHijo | undefined {
+    const raw = localStorage.getItem(STORAGE_KEYS.HORARIOS);
+    const list: HorarioDiarioHijo[] = raw ? JSON.parse(raw) : [];
+    const cleanName = (nombreAlumno || '').trim().toLowerCase();
+
+    const delAlumno = list.filter(
+      (h: any) =>
+        h.idAlumno === idAlumno ||
+        (cleanName && h.nombreAlumno && String(h.nombreAlumno).trim().toLowerCase() === cleanName)
+    );
+    if (delAlumno.length === 0) return undefined;
+    const ultimo = delAlumno[delAlumno.length - 1];
+    return {
+      ...ultimo,
+      horarioBarrio: normalizeTimeString(ultimo.horarioBarrio),
+      horarioCiudad: normalizeTimeString(ultimo.horarioCiudad)
+    };
   },
 
   saveHorarioDiario(horario: HorarioDiarioHijo): void {
@@ -211,7 +421,6 @@ export const apiService = {
     }
     localStorage.setItem(STORAGE_KEYS.HORARIOS, JSON.stringify(list));
 
-    // Sync con Google Apps Script si está disponible
     const url = this.getBackendUrl();
     if (url) {
       fetch(url, {
@@ -222,7 +431,7 @@ export const apiService = {
           data: horario
         }),
         mode: 'no-cors'
-      }).catch((e) => console.warn('Error syncing with Apps Script:', e));
+      }).catch((e) => console.warn('Error syncing horario with Apps Script:', e));
     }
   },
 
@@ -258,7 +467,7 @@ export const apiService = {
           data: nuevo
         }),
         mode: 'no-cors'
-      }).catch((e) => console.warn('Error syncing with Apps Script:', e));
+      }).catch((e) => console.warn('Error syncing checkin with Apps Script:', e));
     }
 
     return nuevo;
@@ -296,15 +505,10 @@ export const apiService = {
           data: nuevo
         }),
         mode: 'no-cors'
-      }).catch((e) => console.warn('Error syncing with Apps Script:', e));
+      }).catch((e) => console.warn('Error syncing aviso with Apps Script:', e));
     }
 
     return nuevo;
-  },
-
-  marcarAvisosLeidos(): void {
-    const avisos = this.getAvisos().map((a) => ({ ...a, leido: true }));
-    localStorage.setItem(STORAGE_KEYS.AVISOS, JSON.stringify(avisos));
   },
 
   exportarListaGeneralCSV(): void {
@@ -375,7 +579,7 @@ export const apiService = {
     link.setAttribute('href', url);
     link.setAttribute(
       'download',
-      `Lista_General_Recorrido_Escolar_${getTodayDateStr()}.csv`
+      `Lista_General_Recorrido_Tala_${getTodayDateStr()}.csv`
     );
     document.body.appendChild(link);
     link.click();

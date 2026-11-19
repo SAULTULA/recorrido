@@ -123,9 +123,8 @@ export const PanelEncargadoRecorrido: React.FC<PanelEncargadoRecorridoProps> = (
 Esperamos se encuentre muy bien. Nos comunicamos desde la Coordinación del Transporte Escolar Tala para hacerle llegar el recordatorio correspondiente al abono del servicio de transporte escolar del alumno/a ${nombresHijos} para el período de ${mesCuota}.
 
 *Detalles para la transferencia:*
-• Monto sugerido: $${montoCuota}
+• Monto: $${montoCuota}
 • Alias de transferencia: *${aliasPago}*
-• Titular: Control de Transporte Escolar Tala
 
 Una vez realizado el abono, le solicitamos tenga a bien enviarnos el comprobante por este mismo medio para asentar el registro.
 
