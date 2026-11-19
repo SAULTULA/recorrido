@@ -108,6 +108,8 @@ export interface CheckInSubida {
   horario: string;
   parada: string;
   horaMarcado: string;
+  horaBajada?: string;
+  estado?: 'A_BORDO' | 'BAJO';
   responsableControl: string;
 }
 

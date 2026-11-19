@@ -9,7 +9,8 @@ import {
   Bus,
   Check,
   Eye,
-  Home
+  Home,
+  ArrowDownCircle
 } from 'lucide-react';
 import styles from './PanelEncargada.module.css';
 import {
@@ -150,6 +151,14 @@ export const PanelEncargada: React.FC<PanelEncargadaProps> = ({ controllerName }
           setSelectedTime('16:00');
         }
       }, 800);
+    }
+  };
+
+  // Marcar bajada (Descenso del transporte en destino)
+  const handleMarkBajada = (idCheckIn: string) => {
+    const updated = apiService.marcarBajada(idCheckIn);
+    if (updated) {
+      setCheckins((prev) => prev.map((c) => (c.id === idCheckIn ? updated : c)));
     }
   };
 
@@ -409,32 +418,59 @@ export const PanelEncargada: React.FC<PanelEncargadaProps> = ({ controllerName }
             </div>
           ) : (
             <div className={styles.panelEncargada__studentsGrid}>
-              {checkedStudents.map(({ alumno, familia, checkinInfo }) => (
-                <div
-                  key={alumno.id}
-                  className={styles.panelEncargada__studentCard}
-                  style={{ borderLeft: '4px solid var(--color-success)' }}
-                >
-                  <div>
-                    <div className={styles.panelEncargada__studentName}>{alumno.nombre}</div>
-                    <div className={styles.panelEncargada__studentSchool}>
-                      <School size={13} />
-                      <span>{alumno.escuela}</span>
+              {checkedStudents.map(({ alumno, familia, checkinInfo }) => {
+                const isBajado = checkinInfo?.estado === 'BAJO' || !!checkinInfo?.horaBajada;
+                return (
+                  <div
+                    key={alumno.id}
+                    className={styles.panelEncargada__studentCard}
+                    style={{
+                      borderLeft: `4px solid ${isBajado ? 'var(--color-text-muted)' : 'var(--color-success)'}`
+                    }}
+                  >
+                    <div>
+                      <div className={styles.panelEncargada__studentName}>{alumno.nombre}</div>
+                      <div className={styles.panelEncargada__studentSchool}>
+                        <School size={13} />
+                        <span>{alumno.escuela}</span>
+                      </div>
                     </div>
+
+                    <div className={styles.panelEncargada__tutorInfo}>
+                      <span>
+                        <strong>Parada:</strong> {checkinInfo?.parada || familia.paradaFija}
+                      </span>
+                      <span>
+                        <strong>Hora de Subida:</strong> {checkinInfo?.horaMarcado} hs
+                      </span>
+                      {checkinInfo?.horaBajada && (
+                        <span>
+                          <strong>Hora de Bajada:</strong> {checkinInfo.horaBajada} hs
+                        </span>
+                      )}
+                      <span>
+                        <strong>Tutor:</strong> {familia.nombreTutor}
+                      </span>
+                    </div>
+
+                    {isBajado ? (
+                      <div className={styles.panelEncargada__statusBajadoBox}>
+                        <CheckCircle2 size={16} color="var(--color-success)" />
+                        <span>Descendió del transporte ({checkinInfo?.horaBajada} hs)</span>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        className={styles.panelEncargada__btnBajada}
+                        onClick={() => checkinInfo && handleMarkBajada(checkinInfo.id)}
+                      >
+                        <ArrowDownCircle size={16} />
+                        <span>⬇️ MARCAR BAJADA (Bajó del micro)</span>
+                      </button>
+                    )}
                   </div>
-                  <div className={styles.panelEncargada__tutorInfo}>
-                    <span>
-                      <strong>Parada:</strong> {checkinInfo?.parada || familia.paradaFija}
-                    </span>
-                    <span>
-                      <strong>Hora de Subida:</strong> {checkinInfo?.horaMarcado} hs
-                    </span>
-                    <span>
-                      <strong>Tutor:</strong> {familia.nombreTutor}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

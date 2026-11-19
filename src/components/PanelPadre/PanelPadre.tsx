@@ -21,7 +21,12 @@ import {
   HORARIOS_SALIDA_BARRIO,
   HORARIOS_SALIDA_CIUDAD
 } from '../../types';
-import { apiService, getTodayDateStr } from '../../services/api';
+import {
+  apiService,
+  getTodayDateStr,
+  getTomorrowDateStr,
+  isTimeLockedForToday
+} from '../../services/api';
 
 interface PanelPadreProps {
   familia: Familia;
@@ -36,25 +41,32 @@ export const PanelPadre: React.FC<PanelPadreProps> = ({ familia, isNightTime }) 
   const [checkins, setCheckins] = useState<CheckInSubida[]>([]);
   const [notification, setNotification] = useState<string | null>(null);
 
+  const todayStr = getTodayDateStr();
+  const tomorrowStr = getTomorrowDateStr();
+  const [targetDate, setTargetDate] = useState<string>(todayStr);
+
   // Estados temporales de selección para la botonera
   const [draftBarrio, setDraftBarrio] = useState<string | 'NO_USA'>('06:25');
   const [draftCiudad, setDraftCiudad] = useState<string | 'NO_USA'>('12:10');
   const [isSaving, setIsSaving] = useState(false);
 
-  const todayStr = getTodayDateStr();
+  const isTimeSlotLocked = (timeStr: string): boolean => {
+    if (targetDate !== todayStr) return false;
+    return isTimeLockedForToday(timeStr);
+  };
 
   const loadData = () => {
-    const list = apiService.getHorariosDiarios(todayStr);
+    const list = apiService.getHorariosDiarios(targetDate);
     setHorariosDiarios(list);
     setCheckins(apiService.getCheckIns(todayStr));
   };
 
   useEffect(() => {
     loadData();
-    // Auto-polling cada 5 segundos para ver en tiempo real si la encargada marcó la subida
+    // Auto-polling cada 5 segundos para ver en tiempo real si la encargada marcó la subida o bajada
     const interval = setInterval(loadData, 5000);
     return () => clearInterval(interval);
-  }, [todayStr]);
+  }, [targetDate, todayStr]);
 
   const selectedHijo = familia.hijos.find((h) => h.id === selectedHijoId) || familia.hijos[0];
 
@@ -65,9 +77,11 @@ export const PanelPadre: React.FC<PanelPadreProps> = ({ familia, isNightTime }) 
       (h: any) =>
         (h.idAlumno === selectedHijo?.id ||
           (cleanChildName && h.nombreAlumno && String(h.nombreAlumno).trim().toLowerCase() === cleanChildName)) &&
-        h.fecha === todayStr
+        h.fecha === targetDate
     ) ||
-    apiService.getUltimoHorarioConfirmado(selectedHijo?.id || '', selectedHijo?.nombre);
+    (targetDate === todayStr
+      ? apiService.getUltimoHorarioConfirmado(selectedHijo?.id || '', selectedHijo?.nombre)
+      : undefined);
 
   // Sincronizar selección borrador cuando cambia el hijo seleccionado o cuando carga el horario
   useEffect(() => {
@@ -75,10 +89,13 @@ export const PanelPadre: React.FC<PanelPadreProps> = ({ familia, isNightTime }) 
       setDraftBarrio(currentHorario.usaIda ? currentHorario.horarioBarrio : 'NO_USA');
       setDraftCiudad(currentHorario.usaVuelta ? currentHorario.horarioCiudad : 'NO_USA');
     } else {
-      setDraftBarrio('07:20');
-      setDraftCiudad('12:10');
+      // Si estamos en hoy, buscar el primer horario disponible que no esté bloqueado
+      const firstBarrio = HORARIOS_SALIDA_BARRIO.find((h) => !isTimeSlotLocked(h)) || 'NO_USA';
+      const firstCiudad = HORARIOS_SALIDA_CIUDAD.find((h) => !isTimeSlotLocked(h)) || 'NO_USA';
+      setDraftBarrio(firstBarrio);
+      setDraftCiudad(firstCiudad);
     }
-  }, [selectedHijoId, currentHorario]);
+  }, [selectedHijoId, currentHorario, targetDate]);
 
   // Buscar si la encargada ya marcó el check-in (subida) de este niño hoy
   const checkinIda = checkins.find(
@@ -97,38 +114,41 @@ export const PanelPadre: React.FC<PanelPadreProps> = ({ familia, isNightTime }) 
       c.fecha === todayStr
   );
 
-  /**
-   * Verifica si faltan menos de 30 minutos para un horario determinado
-   */
-  const isWithinMargin = (timeStr: string): boolean => {
-    if (!timeStr || timeStr === 'NO_USA') return false;
-    const [h, m] = timeStr.split(':').map(Number);
-    const now = new Date();
-    const scheduled = new Date();
-    scheduled.setHours(h, m, 0, 0);
-
-    const diffMinutes = (scheduled.getTime() - now.getTime()) / (1000 * 60);
-    return diffMinutes >= 0 && diffMinutes <= 30;
-  };
+  const isBajoIda = checkinIda?.estado === 'BAJO' || !!checkinIda?.horaBajada;
+  const isBajoVuelta = checkinVuelta?.estado === 'BAJO' || !!checkinVuelta?.horaBajada;
 
   /**
    * Botón para Subir y Confirmar los Horarios del Niño
    */
   const handleConfirmHorarios = () => {
     if (!selectedHijo) return;
+
+    // Validación estricta de 30 minutos de anticipación para el día de hoy
+    if (targetDate === todayStr) {
+      if (draftBarrio !== 'NO_USA' && isTimeLockedForToday(draftBarrio)) {
+        alert(
+          `⚠️ No se puede cargar el horario de salida del barrio (${draftBarrio} hs) porque faltan menos de 30 minutos o ya pasó.\nPor favor seleccione un horario con al menos 30 minutos de anticipación o marque 'No usa recorrido'.`
+        );
+        return;
+      }
+      if (draftCiudad !== 'NO_USA' && isTimeLockedForToday(draftCiudad)) {
+        alert(
+          `⚠️ No se puede cargar el horario de salida de ciudad (${draftCiudad} hs) porque faltan menos de 30 minutos o ya pasó.\nPor favor seleccione un horario con al menos 30 minutos de anticipación o marque 'No usa recorrido'.`
+        );
+        return;
+      }
+    }
+
     setIsSaving(true);
 
     const esCancelacionIda = draftBarrio === 'NO_USA';
     const esCancelacionVuelta = draftCiudad === 'NO_USA';
 
-    const horarioAnteriorIda = currentHorario?.horarioBarrio || '';
-    const horarioAnteriorVuelta = currentHorario?.horarioCiudad || '';
-
     const updated: HorarioDiarioHijo = {
       idAlumno: selectedHijo.id,
       nombreAlumno: selectedHijo.nombre,
       parada: familia.paradaFija,
-      fecha: todayStr,
+      fecha: targetDate,
       horarioBarrio: draftBarrio,
       horarioCiudad: draftCiudad,
       usaIda: !esCancelacionIda,
@@ -151,25 +171,23 @@ export const PanelPadre: React.FC<PanelPadreProps> = ({ familia, isNightTime }) 
       return [...prev, updated];
     });
 
-    // Validar avisos por margen de 30 min o cancelaciones
-    const sobreHoraIda = isWithinMargin(horarioAnteriorIda) || (!esCancelacionIda && isWithinMargin(draftBarrio));
-    const sobreHoraVuelta = isWithinMargin(horarioAnteriorVuelta) || (!esCancelacionVuelta && isWithinMargin(draftCiudad));
-
-    if (esCancelacionIda || esCancelacionVuelta || sobreHoraIda || sobreHoraVuelta) {
+    if (esCancelacionIda || esCancelacionVuelta) {
       apiService.crearAviso({
-        fecha: todayStr,
+        fecha: targetDate,
         idAlumno: selectedHijo.id,
         nombreAlumno: selectedHijo.nombre,
-        tipo: esCancelacionIda || esCancelacionVuelta ? 'CANCELACION' : 'CAMBIO_HORARIO',
+        tipo: 'CANCELACION',
         horarioAfectado: `Ida: ${draftBarrio} | Vuelta: ${draftCiudad}`,
-        detalle: `El tutor confirmó horarios para ${selectedHijo.nombre}: Ida (${draftBarrio}) - Vuelta (${draftCiudad})${
-          sobreHoraIda || sobreHoraVuelta ? ' [AVISO URGENTE: Menos de 30 min de margen]' : ''
-        }`
+        detalle: `El tutor confirmó cancelación de recorrido para ${selectedHijo.nombre} (${targetDate}): ${
+          esCancelacionIda ? 'No usa Ida. ' : ''
+        }${esCancelacionVuelta ? 'No usa Vuelta.' : ''}`
       });
     }
 
     setIsSaving(false);
-    showNotification(`¡Horarios de ${selectedHijo.nombre} subidos y confirmados con éxito!`);
+    showNotification(
+      `¡Horarios de ${selectedHijo.nombre} para el día ${targetDate} subidos y confirmados con éxito!`
+    );
   };
 
   const showNotification = (msg: string) => {
@@ -256,27 +274,54 @@ export const PanelPadre: React.FC<PanelPadreProps> = ({ familia, isNightTime }) 
             )}
             <div className={styles.panelPadre__childDetailItem}>
               <Calendar size={16} />
-              <span>Día: <strong>{todayStr}</strong></span>
+              <span>Fecha a Configurar: <strong>{targetDate}</strong></span>
             </div>
+          </div>
+
+          {/* Selector de Día: Hoy vs Mañana */}
+          <div className={styles.panelPadre__dateSelector}>
+            <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'bold', color: 'var(--color-text-main)' }}>
+              Cargar horarios para:
+            </span>
+            <button
+              type="button"
+              className={`${styles.panelPadre__dateBtn} ${
+                targetDate === todayStr ? styles['panelPadre__dateBtn--active'] : ''
+              }`}
+              onClick={() => setTargetDate(todayStr)}
+            >
+              <Calendar size={14} />
+              <span>Hoy ({todayStr})</span>
+            </button>
+            <button
+              type="button"
+              className={`${styles.panelPadre__dateBtn} ${
+                targetDate === tomorrowStr ? styles['panelPadre__dateBtn--active'] : ''
+              }`}
+              onClick={() => setTargetDate(tomorrowStr)}
+            >
+              <Calendar size={14} />
+              <span>Mañana ({tomorrowStr})</span>
+            </button>
           </div>
         </div>
 
         <div className={styles.panelPadre__marginNotice}>
           <Info size={16} />
           <span>
-            <strong>Margen de aviso:</strong> Recuerde que cualquier cambio debe confirmarse al menos <strong>media hora (30 min) antes</strong> para no afectar el recorrido del colectivo.
+            <strong>Margen estricto de anticipación:</strong> Para el día de <strong>HOY</strong>, el sistema bloquea automáticamente cualquier horario que ya pasó o que tenga menos de <strong>30 minutos de anticipación</strong> (a partir de 29 minutos antes ya no es posible reservarlo). Si desea cargar para el día siguiente, seleccione <em>Mañana</em> arriba.
           </span>
         </div>
       </div>
 
       {/* ====================================================================
-          TARJETA 1: HORARIOS VIGENTES EN PANTALLA (CONFIRMADOS PARA HOY)
+          TARJETA 1: HORARIOS VIGENTES EN PANTALLA (CONFIRMADOS)
          ==================================================================== */}
       <div className={styles.panelPadre__currentActiveCard}>
         <div className={styles.panelPadre__currentActiveHeader}>
           <div className={styles.panelPadre__currentActiveTitle}>
             <Clock size={20} />
-            <span>Horarios Vigentes Confirmados de {selectedHijo.nombre} (Hoy {todayStr})</span>
+            <span>Horarios Vigentes Confirmados de {selectedHijo.nombre} ({targetDate})</span>
           </div>
           {currentHorario?.ultimaModificacion && (
             <span style={{ fontSize: 'var(--font-size-xs)', opacity: 0.85 }}>
@@ -317,13 +362,15 @@ export const PanelPadre: React.FC<PanelPadreProps> = ({ familia, isNightTime }) 
       </div>
 
       {/* ====================================================================
-          TARJETA 2: ESTADO EN TIEMPO REAL: ¿SUBIÓ AL COLECTIVO?
+          TARJETA 2: ESTADO EN TIEMPO REAL: ¿SUBIÓ AL COLECTIVO? ¿BAJÓ?
          ==================================================================== */}
       <div className={styles.panelPadre__liveStatusContainer}>
         {/* Estado Ida */}
         <div
           className={`${styles.panelPadre__liveStatusCard} ${
-            checkinIda
+            isBajoIda
+              ? styles['panelPadre__liveStatusCard--descended']
+              : checkinIda
               ? styles['panelPadre__liveStatusCard--boarded']
               : currentHorario?.usaIda === false
               ? styles['panelPadre__liveStatusCard--none']
@@ -331,25 +378,31 @@ export const PanelPadre: React.FC<PanelPadreProps> = ({ familia, isNightTime }) 
           }`}
         >
           <div className={styles.panelPadre__liveStatusIcon}>
-            {checkinIda ? (
+            {isBajoIda ? (
               <CheckCircle2 size={22} />
+            ) : checkinIda ? (
+              <Bus size={22} />
             ) : currentHorario?.usaIda === false ? (
               <XCircle size={22} />
             ) : (
-              <Bus size={22} />
+              <Clock size={22} />
             )}
           </div>
           <div className={styles.panelPadre__liveStatusText}>
             <span className={styles.panelPadre__liveStatusTitle}>
-              {checkinIda
-                ? `✅ ¡${selectedHijo.nombre} SUBIÓ AL COLECTIVO (IDA)!`
+              {isBajoIda
+                ? `🏫 ✅ ¡${selectedHijo.nombre} YA BAJÓ DEL COLECTIVO Y LLEGÓ A LA ESCUELA (IDA)!`
+                : checkinIda
+                ? `🚌 ✅ ¡${selectedHijo.nombre} SE ENCUENTRA A BORDO DEL COLECTIVO (IDA)!`
                 : currentHorario?.usaIda === false
                 ? '🚫 No utiliza recorrido de Ida hoy'
                 : `⏳ Esperando micro de Ida (${currentHorario?.horarioBarrio || draftBarrio} hs)`}
             </span>
             <span className={styles.panelPadre__liveStatusDesc}>
-              {checkinIda
-                ? `Registrado a las ${checkinIda.horaMarcado} hs por ${checkinIda.responsableControl} en ${checkinIda.parada}. Se encuentra a bordo.`
+              {isBajoIda
+                ? `Descendió a las ${checkinIda?.horaBajada} hs en ${selectedHijo.escuela}. Controlado por ${checkinIda?.responsableControl}.`
+                : checkinIda
+                ? `Registrado a las ${checkinIda.horaMarcado} hs por ${checkinIda.responsableControl} en ${checkinIda.parada}. Se encuentra en viaje a bordo.`
                 : currentHorario?.usaIda === false
                 ? 'Aviso de retiro particular registrado.'
                 : 'La encargada marcará su subida cuando suba al colectivo en su parada.'}
@@ -360,7 +413,9 @@ export const PanelPadre: React.FC<PanelPadreProps> = ({ familia, isNightTime }) 
         {/* Estado Vuelta */}
         <div
           className={`${styles.panelPadre__liveStatusCard} ${
-            checkinVuelta
+            isBajoVuelta
+              ? styles['panelPadre__liveStatusCard--descended']
+              : checkinVuelta
               ? styles['panelPadre__liveStatusCard--boarded']
               : currentHorario?.usaVuelta === false
               ? styles['panelPadre__liveStatusCard--none']
@@ -368,25 +423,31 @@ export const PanelPadre: React.FC<PanelPadreProps> = ({ familia, isNightTime }) 
           }`}
         >
           <div className={styles.panelPadre__liveStatusIcon}>
-            {checkinVuelta ? (
+            {isBajoVuelta ? (
               <CheckCircle2 size={22} />
+            ) : checkinVuelta ? (
+              <Bus size={22} />
             ) : currentHorario?.usaVuelta === false ? (
               <XCircle size={22} />
             ) : (
-              <Bus size={22} />
+              <Clock size={22} />
             )}
           </div>
           <div className={styles.panelPadre__liveStatusText}>
             <span className={styles.panelPadre__liveStatusTitle}>
-              {checkinVuelta
-                ? `✅ ¡${selectedHijo.nombre} SUBIÓ AL COLECTIVO (VUELTA)!`
+              {isBajoVuelta
+                ? `🏠 ✅ ¡${selectedHijo.nombre} YA BAJÓ DEL COLECTIVO EN SU PARADA (VUELTA)!`
+                : checkinVuelta
+                ? `🚌 ✅ ¡${selectedHijo.nombre} SE ENCUENTRA A BORDO DEL COLECTIVO (VUELTA)!`
                 : currentHorario?.usaVuelta === false
                 ? '🚫 No utiliza recorrido de Vuelta hoy'
                 : `⏳ Pendiente de subida de Vuelta (${currentHorario?.horarioCiudad || draftCiudad} hs)`}
             </span>
             <span className={styles.panelPadre__liveStatusDesc}>
-              {checkinVuelta
-                ? `Registrado a las ${checkinVuelta.horaMarcado} hs. En viaje de regreso hacia el barrio.`
+              {isBajoVuelta
+                ? `Descendió a las ${checkinVuelta?.horaBajada} hs en ${familia.paradaFija}. Llegó a destino.`
+                : checkinVuelta
+                ? `Registrado a las ${checkinVuelta.horaMarcado} hs. En viaje de regreso hacia el barrio con ${checkinVuelta.responsableControl}.`
                 : currentHorario?.usaVuelta === false
                 ? 'El alumno es retirado por su tutor a la salida.'
                 : 'Se marcará cuando el micro lo recoja en la salida de la escuela.'}
@@ -436,17 +497,28 @@ export const PanelPadre: React.FC<PanelPadreProps> = ({ familia, isNightTime }) 
           <div className={styles.panelPadre__buttonGrid}>
             {HORARIOS_SALIDA_BARRIO.map((h) => {
               const isSelected = draftBarrio === h;
+              const isLocked = isTimeSlotLocked(h);
               return (
                 <button
                   key={h}
                   type="button"
+                  disabled={isLocked}
                   className={`${styles.panelPadre__timeBtn} ${
                     isSelected ? styles['panelPadre__timeBtn--selected'] : ''
-                  }`}
-                  onClick={() => setDraftBarrio(h)}
+                  } ${isLocked ? styles['panelPadre__timeBtn--locked'] : ''}`}
+                  onClick={() => !isLocked && setDraftBarrio(h)}
+                  title={
+                    isLocked
+                      ? 'Horario bloqueado: debe reservarse con al menos 30 min de anticipación'
+                      : `Seleccionar ${h} hs`
+                  }
                 >
-                  <span style={{ fontSize: 'var(--font-size-md)' }}>⏺️ {h}</span>
-                  <span style={{ fontSize: 'var(--font-size-xs)', opacity: 0.85 }}>hs</span>
+                  <span style={{ fontSize: 'var(--font-size-md)' }}>
+                    {isLocked ? '🔒' : '⏺️'} {h}
+                  </span>
+                  <span style={{ fontSize: 'var(--font-size-xs)', opacity: 0.85 }}>
+                    {isLocked ? 'Cerrado' : 'hs'}
+                  </span>
                 </button>
               );
             })}
@@ -489,17 +561,28 @@ export const PanelPadre: React.FC<PanelPadreProps> = ({ familia, isNightTime }) 
           <div className={styles.panelPadre__buttonGrid}>
             {HORARIOS_SALIDA_CIUDAD.map((h) => {
               const isSelected = draftCiudad === h;
+              const isLocked = isTimeSlotLocked(h);
               return (
                 <button
                   key={h}
                   type="button"
+                  disabled={isLocked}
                   className={`${styles.panelPadre__timeBtn} ${
                     isSelected ? styles['panelPadre__timeBtn--selected'] : ''
-                  }`}
-                  onClick={() => setDraftCiudad(h)}
+                  } ${isLocked ? styles['panelPadre__timeBtn--locked'] : ''}`}
+                  onClick={() => !isLocked && setDraftCiudad(h)}
+                  title={
+                    isLocked
+                      ? 'Horario bloqueado: debe reservarse con al menos 30 min de anticipación'
+                      : `Seleccionar ${h} hs`
+                  }
                 >
-                  <span style={{ fontSize: 'var(--font-size-md)' }}>⏺️ {h}</span>
-                  <span style={{ fontSize: 'var(--font-size-xs)', opacity: 0.85 }}>hs</span>
+                  <span style={{ fontSize: 'var(--font-size-md)' }}>
+                    {isLocked ? '🔒' : '⏺️'} {h}
+                  </span>
+                  <span style={{ fontSize: 'var(--font-size-xs)', opacity: 0.85 }}>
+                    {isLocked ? 'Cerrado' : 'hs'}
+                  </span>
                 </button>
               );
             })}
@@ -532,7 +615,7 @@ export const PanelPadre: React.FC<PanelPadreProps> = ({ familia, isNightTime }) 
           <span>
             {isSaving
               ? 'Guardando en el sistema...'
-              : `SUBIR Y CONFIRMAR HORARIOS DE ${selectedHijo.nombre.toUpperCase()}`}
+              : `SUBIR Y CONFIRMAR HORARIOS DE ${selectedHijo.nombre.toUpperCase()} (${targetDate})`}
           </span>
         </button>
         <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>

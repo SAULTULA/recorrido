@@ -200,6 +200,17 @@
   color: #991b1b;
 }
 
+.panelPadre__liveStatusCard--descended {
+  background-color: #ecfdf5;
+  border-color: #10b981;
+  color: #065f46;
+}
+
+.panelPadre__liveStatusCard--descended .panelPadre__liveStatusIcon {
+  background-color: #10b981;
+  color: #ffffff;
+}
+
 .panelPadre__liveStatusIcon {
   width: 38px;
   height: 38px;
@@ -412,6 +423,59 @@
 .panelPadre__timeBtn--selected:hover {
   background-color: var(--color-primary-hover);
   color: var(--color-text-white);
+}
+
+.panelPadre__timeBtn--locked {
+  background-color: var(--color-bg-subtle);
+  border-color: var(--color-border);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+
+.panelPadre__timeBtn--locked:hover {
+  background-color: var(--color-bg-subtle);
+  border-color: var(--color-border);
+  color: var(--color-text-muted);
+}
+
+.panelPadre__dateSelector {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.panelPadre__dateBtn {
+  padding: var(--spacing-xs) var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background-color: var(--color-bg-card);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-main);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all var(--transition-fast);
+}
+
+.panelPadre__dateBtn:hover {
+  border-color: var(--color-primary-border);
+  background-color: var(--color-bg-subtle);
+}
+
+.panelPadre__dateBtn--active {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-text-white);
+}
+
+.panelPadre__dateBtn--active:hover {
+  background-color: var(--color-primary-hover);
 }
 
 /* Botón Especial "No usa recorrido" */

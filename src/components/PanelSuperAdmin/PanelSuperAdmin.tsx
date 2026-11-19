@@ -426,3 +426,4 @@ export const PanelSuperAdmin: React.FC<PanelSuperAdminProps> = ({
     </div>
   );
 };
+

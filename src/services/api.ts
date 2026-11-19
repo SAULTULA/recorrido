@@ -29,11 +29,40 @@ export function getTodayDateStr(): string {
   return `${y}-${m}-${day}`;
 }
 
+export function getTomorrowDateStr(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 export function getCurrentTimeStr(): string {
   const d = new Date();
   const h = String(d.getHours()).padStart(2, '0');
   const m = String(d.getMinutes()).padStart(2, '0');
   return `${h}:${m}`;
+}
+
+/**
+ * Determina si faltan menos de 30 minutos o si la hora ya pasó para el día de HOY.
+ * Retorna true si está bloqueado (no se puede cargar o cambiar con menos de 30 min de margen).
+ */
+export function isTimeLockedForToday(timeStr: string): boolean {
+  if (!timeStr || timeStr === 'NO_USA') return false;
+  const parts = timeStr.split(':');
+  if (parts.length < 2) return false;
+  const h = parseInt(parts[0], 10);
+  const m = parseInt(parts[1], 10);
+  if (isNaN(h) || isNaN(m)) return false;
+
+  const now = new Date();
+  const currentMins = now.getHours() * 60 + now.getMinutes();
+  const targetMins = h * 60 + m;
+
+  // Si ya pasó o faltan menos de 30 minutos (ej: a las 09:25 un horario de 07:20 o de 09:40)
+  return (targetMins - currentMins) < 30;
 }
 
 /**
@@ -232,6 +261,8 @@ export const apiService = {
           horario: normalizeTimeString(c.Horario || c.horario),
           parada: c.Parada || c.parada,
           horaMarcado: normalizeTimeString(c.Hora_Marcado || c.horaMarcado),
+          horaBajada: normalizeTimeString(c.Hora_Bajada || c.horaBajada || ''),
+          estado: c.Estado || c.estado || (c.Hora_Bajada ? 'BAJO' : 'A_BORDO'),
           responsableControl: c.Responsable_Control || c.responsableControl
         }));
         localStorage.setItem(STORAGE_KEYS.CHECKINS, JSON.stringify(mappedCheckins));
@@ -452,7 +483,8 @@ export const apiService = {
     const nuevo: CheckInSubida = {
       ...checkin,
       id: 'chk-' + Date.now(),
-      horaMarcado: getCurrentTimeStr()
+      horaMarcado: getCurrentTimeStr(),
+      estado: 'A_BORDO'
     };
     list.push(nuevo);
     localStorage.setItem(STORAGE_KEYS.CHECKINS, JSON.stringify(list));
@@ -471,6 +503,40 @@ export const apiService = {
     }
 
     return nuevo;
+  },
+
+  marcarBajada(idCheckIn: string): CheckInSubida | undefined {
+    const raw = localStorage.getItem(STORAGE_KEYS.CHECKINS);
+    const list: CheckInSubida[] = raw ? JSON.parse(raw) : [];
+    const index = list.findIndex((c) => c.id === idCheckIn);
+    if (index === -1) return undefined;
+
+    const horaBajada = getCurrentTimeStr();
+    list[index] = {
+      ...list[index],
+      horaBajada,
+      estado: 'BAJO'
+    };
+
+    localStorage.setItem(STORAGE_KEYS.CHECKINS, JSON.stringify(list));
+
+    const url = this.getBackendUrl();
+    if (url) {
+      fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'marcarBajada',
+          data: {
+            idCheckIn: idCheckIn,
+            horaBajada: horaBajada
+          }
+        }),
+        mode: 'no-cors'
+      }).catch((e) => console.warn('Error syncing bajada with Apps Script:', e));
+    }
+
+    return list[index];
   },
 
   getAvisos(): AvisoAlerta[] {

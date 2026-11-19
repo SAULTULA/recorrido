@@ -34,7 +34,7 @@ function initSheets() {
   ]);
   
   getOrCreateSheet(ss, SHEET_NAMES.CHECKIN, [
-    'ID_CheckIn', 'Fecha', 'ID_Alumno', 'Nombre_Alumno', 'Sentido', 'Horario', 'Parada', 'Hora_Marcado', 'Responsable_Control'
+    'ID_CheckIn', 'Fecha', 'ID_Alumno', 'Nombre_Alumno', 'Sentido', 'Horario', 'Parada', 'Hora_Marcado', 'Hora_Bajada', 'Estado', 'Responsable_Control'
   ]);
   
   getOrCreateSheet(ss, SHEET_NAMES.AVISOS, [
@@ -96,6 +96,10 @@ function doPost(e) {
     
     if (action === 'marcarSubida') {
       return jsonResponse(marcarSubida(postData.data));
+    }
+
+    if (action === 'marcarBajada') {
+      return jsonResponse(marcarBajada(postData.data));
     }
     
     if (action === 'guardarAviso') {
@@ -199,7 +203,8 @@ function marcarSubida(data) {
   initSheets();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheetCheckIn = ss.getSheetByName(SHEET_NAMES.CHECKIN);
-  const idCheckIn = 'CHK-' + new Date().getTime();
+  const idCheckIn = data.id || ('CHK-' + new Date().getTime());
+  const horaMarcado = Utilities.formatDate(new Date(), 'America/Argentina/Buenos_Aires', 'HH:mm');
   
   sheetCheckIn.appendRow([
     idCheckIn,
@@ -209,11 +214,31 @@ function marcarSubida(data) {
     data.sentido,
     "'" + data.horario,
     data.parada,
-    new Date().toISOString(),
+    "'" + horaMarcado,
+    '',
+    'A_BORDO',
     data.responsableControl || 'Encargada'
   ]);
   
   return { success: true, idCheckIn: idCheckIn };
+}
+
+function marcarBajada(data) {
+  initSheets();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheetCheckIn = ss.getSheetByName(SHEET_NAMES.CHECKIN);
+  const values = sheetCheckIn.getDataRange().getValues();
+  const idCheckIn = data.idCheckIn || data.id;
+  const horaBajada = data.horaBajada || Utilities.formatDate(new Date(), 'America/Argentina/Buenos_Aires', 'HH:mm');
+  
+  for (let i = 1; i < values.length; i++) {
+    if (String(values[i][0]).trim() === String(idCheckIn).trim()) {
+      sheetCheckIn.getRange(i + 1, 9).setValue("'" + horaBajada);
+      sheetCheckIn.getRange(i + 1, 10).setValue('BAJO');
+      break;
+    }
+  }
+  return { success: true };
 }
 
 function guardarAviso(data) {
