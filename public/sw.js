@@ -1,4 +1,4 @@
-const CACHE_NAME = 'recorrido-tala-v2';
+const CACHE_NAME = 'recorrido-tala-v4';
 const STATIC_ASSETS = [
   '/manifest.json',
   '/icon.svg',

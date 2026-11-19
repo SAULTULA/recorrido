@@ -49,6 +49,18 @@ export const App: React.FC = () => {
 
   // Sincronización automática con Google Sheets al iniciar la app
   useEffect(() => {
+    // Si la URL guardada es la anterior que fue dada de baja, forzar la nueva URL activa
+    const currentBackend = localStorage.getItem('recorrido_backend_url');
+    if (
+      !currentBackend ||
+      currentBackend.includes('AKfycbyaRBe41sqNP7MtSyjnSar2XSTUODSYiS4QqaxxMH8F6DXjWnM_heRWh52rLRrqjcaQzA')
+    ) {
+      localStorage.setItem(
+        'recorrido_backend_url',
+        'https://script.google.com/macros/s/AKfycbwr3R_NgYVaNyFFaNX2l9sfiQxwzwi_gvmSkXBjeATR-L5bEheLjucGZkLh6SXhWeAMaw/exec'
+      );
+    }
+
     apiService.checkHealth().then((status) => {
       setBackendStatus(status);
     });

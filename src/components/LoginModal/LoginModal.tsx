@@ -329,6 +329,17 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           {role === 'SUPERADMIN' ? (
             <div className={styles.loginModal__group}>
               <label className={styles.loginModal__label}>Clave Maestra de SuperAdmin</label>
+              {/* Campo de usuario oculto para accesibilidad de gestores de contraseñas de Chromium */}
+              <input
+                type="text"
+                name="username"
+                value="superadmin"
+                autoComplete="username"
+                tabIndex={-1}
+                aria-hidden="true"
+                readOnly
+                style={{ position: 'absolute', width: 0, height: 0, opacity: 0, pointerEvents: 'none' }}
+              />
               <input
                 type="password"
                 className={styles.loginModal__input}
