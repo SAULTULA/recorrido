@@ -17,6 +17,13 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
   });
 }
 
+// Captura única centralizada del prompt de instalación PWA
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  (window as any).__pwaPrompt = e;
+  window.dispatchEvent(new CustomEvent('pwa-prompt-ready'));
+});
+
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <App />

@@ -108,6 +108,10 @@ export const apiService = {
 
   setAliasPago(alias: string): void {
     localStorage.setItem(STORAGE_KEYS.ALIAS_PAGO, alias.trim());
+    this.sendToBackend({
+      action: 'guardarConfig',
+      data: { alias_pago: alias.trim() }
+    });
   },
 
   getMontoCuota(): string {
@@ -116,6 +120,27 @@ export const apiService = {
 
   setMontoCuota(monto: string): void {
     localStorage.setItem(STORAGE_KEYS.MONTO_CUOTA, monto.trim());
+    this.sendToBackend({
+      action: 'guardarConfig',
+      data: { monto_cuota: monto.trim() }
+    });
+  },
+
+  async sendToBackend(payload: any): Promise<boolean> {
+    const url = this.getBackendUrl();
+    if (!url) return false;
+    try {
+      await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload),
+        mode: 'no-cors'
+      });
+      return true;
+    } catch (e) {
+      console.warn('Error syncing with Apps Script:', e);
+      return false;
+    }
   },
 
   async checkHealth(targetUrl?: string): Promise<BackendStatus> {
@@ -224,16 +249,40 @@ export const apiService = {
       }
 
       // 2. Personal
-      if (data.personal && Array.isArray(data.personal)) {
+      if (data.personal && Array.isArray(data.personal) && data.personal.length > 0) {
         const mappedPersonal: PersonalStaff[] = data.personal.map((p: any) => ({
           id: p.ID_Personal || p.id,
           nombre: p.Nombre || p.nombre,
           dni: String(p.DNI || p.dni).trim(),
           celular: String(p.Celular || p.celular).trim(),
-          rol: p.Rol || p.rol,
+          rol: p.Rol || p.rol || 'AUXILIAR',
           fechaRegistro: p.Fecha_Alta || p.fechaRegistro || getTodayDateStr()
         }));
         localStorage.setItem(STORAGE_KEYS.PERSONAL, JSON.stringify(mappedPersonal));
+      } else {
+        // Si el backend aún no tiene personal pero en local sí hay, empujarlos a Google Sheets
+        const localPersonal = this.getPersonal();
+        if (localPersonal.length > 0) {
+          localPersonal.forEach((staff) => {
+            this.sendToBackend({
+              action: 'registrarPersonal',
+              data: staff
+            });
+          });
+        }
+      }
+
+      // 6. Configuración del sistema (SuperAdmin, Alias, Monto)
+      if (data.config) {
+        if (data.config.admin_password) {
+          localStorage.setItem(STORAGE_KEYS.ADMIN_PASSWORD, String(data.config.admin_password).trim());
+        }
+        if (data.config.alias_pago) {
+          localStorage.setItem(STORAGE_KEYS.ALIAS_PAGO, String(data.config.alias_pago).trim());
+        }
+        if (data.config.monto_cuota) {
+          localStorage.setItem(STORAGE_KEYS.MONTO_CUOTA, String(data.config.monto_cuota).trim());
+        }
       }
 
       // 3. Horarios diarios
@@ -311,36 +360,20 @@ export const apiService = {
     }
     localStorage.setItem(STORAGE_KEYS.FAMILIAS, JSON.stringify(familias));
 
-    const url = this.getBackendUrl();
-    if (url) {
-      fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'registrarFamilia',
-          data: familia
-        }),
-        mode: 'no-cors'
-      }).catch((e) => console.warn('Error syncing familia with Apps Script:', e));
-    }
+    this.sendToBackend({
+      action: 'registrarFamilia',
+      data: familia
+    });
   },
 
   deleteFamilia(id: string): void {
     const familias = this.getFamilias().filter((f) => f.id !== id);
     localStorage.setItem(STORAGE_KEYS.FAMILIAS, JSON.stringify(familias));
 
-    const url = this.getBackendUrl();
-    if (url) {
-      fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'eliminarFamilia',
-          idFamilia: id
-        }),
-        mode: 'no-cors'
-      }).catch((e) => console.warn('Error deleting familia on Apps Script:', e));
-    }
+    this.sendToBackend({
+      action: 'eliminarFamilia',
+      idFamilia: id
+    });
   },
 
   getPersonal(): PersonalStaff[] {
@@ -363,36 +396,20 @@ export const apiService = {
     }
     localStorage.setItem(STORAGE_KEYS.PERSONAL, JSON.stringify(list));
 
-    const url = this.getBackendUrl();
-    if (url) {
-      fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'registrarPersonal',
-          data: staff
-        }),
-        mode: 'no-cors'
-      }).catch((e) => console.warn('Error syncing personal with Apps Script:', e));
-    }
+    this.sendToBackend({
+      action: 'registrarPersonal',
+      data: staff
+    });
   },
 
   deletePersonal(id: string): void {
     const list = this.getPersonal().filter((s) => s.id !== id);
     localStorage.setItem(STORAGE_KEYS.PERSONAL, JSON.stringify(list));
 
-    const url = this.getBackendUrl();
-    if (url) {
-      fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'eliminarPersonal',
-          idPersonal: id
-        }),
-        mode: 'no-cors'
-      }).catch((e) => console.warn('Error deleting personal on Apps Script:', e));
-    }
+    this.sendToBackend({
+      action: 'eliminarPersonal',
+      idPersonal: id
+    });
   },
 
   checkAdminPassword(pass: string): boolean {
@@ -402,6 +419,10 @@ export const apiService = {
 
   setAdminPassword(newPass: string): void {
     localStorage.setItem(STORAGE_KEYS.ADMIN_PASSWORD, newPass.trim());
+    this.sendToBackend({
+      action: 'guardarConfig',
+      data: { admin_password: newPass.trim() }
+    });
   },
 
   getHorariosDiarios(fecha: string = getTodayDateStr()): HorarioDiarioHijo[] {
@@ -452,18 +473,10 @@ export const apiService = {
     }
     localStorage.setItem(STORAGE_KEYS.HORARIOS, JSON.stringify(list));
 
-    const url = this.getBackendUrl();
-    if (url) {
-      fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'guardarHorario',
-          data: horario
-        }),
-        mode: 'no-cors'
-      }).catch((e) => console.warn('Error syncing horario with Apps Script:', e));
-    }
+    this.sendToBackend({
+      action: 'guardarHorario',
+      data: horario
+    });
   },
 
   getCheckIns(fecha: string = getTodayDateStr()): CheckInSubida[] {
@@ -489,18 +502,10 @@ export const apiService = {
     list.push(nuevo);
     localStorage.setItem(STORAGE_KEYS.CHECKINS, JSON.stringify(list));
 
-    const url = this.getBackendUrl();
-    if (url) {
-      fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'marcarSubida',
-          data: nuevo
-        }),
-        mode: 'no-cors'
-      }).catch((e) => console.warn('Error syncing checkin with Apps Script:', e));
-    }
+    this.sendToBackend({
+      action: 'marcarSubida',
+      data: nuevo
+    });
 
     return nuevo;
   },
@@ -520,21 +525,13 @@ export const apiService = {
 
     localStorage.setItem(STORAGE_KEYS.CHECKINS, JSON.stringify(list));
 
-    const url = this.getBackendUrl();
-    if (url) {
-      fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'marcarBajada',
-          data: {
-            idCheckIn: idCheckIn,
-            horaBajada: horaBajada
-          }
-        }),
-        mode: 'no-cors'
-      }).catch((e) => console.warn('Error syncing bajada with Apps Script:', e));
-    }
+    this.sendToBackend({
+      action: 'marcarBajada',
+      data: {
+        idCheckIn: idCheckIn,
+        horaBajada: horaBajada
+      }
+    });
 
     return list[index];
   },
@@ -561,18 +558,10 @@ export const apiService = {
     list.unshift(nuevo);
     localStorage.setItem(STORAGE_KEYS.AVISOS, JSON.stringify(list));
 
-    const url = this.getBackendUrl();
-    if (url) {
-      fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'guardarAviso',
-          data: nuevo
-        }),
-        mode: 'no-cors'
-      }).catch((e) => console.warn('Error syncing aviso with Apps Script:', e));
-    }
+    this.sendToBackend({
+      action: 'guardarAviso',
+      data: nuevo
+    });
 
     return nuevo;
   },

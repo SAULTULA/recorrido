@@ -17,14 +17,17 @@ export const InstallBanner: React.FC = () => {
     const isIosDevice = /iphone|ipad|ipod/.test(userAgent);
     setIsIOS(isIosDevice);
 
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
+    if ((window as any).__pwaPrompt) {
+      setDeferredPrompt((window as any).__pwaPrompt);
+    }
+
+    const onPromptReady = () => {
+      setDeferredPrompt((window as any).__pwaPrompt);
     };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('pwa-prompt-ready', onPromptReady);
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('pwa-prompt-ready', onPromptReady);
     };
   }, []);
 

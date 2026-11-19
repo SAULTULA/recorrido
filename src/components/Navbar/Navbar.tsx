@@ -36,25 +36,30 @@ export const Navbar: React.FC<NavbarProps> = ({
     const isIosDevice = /iphone|ipad|ipod/.test(userAgent);
     setIsIOS(isIosDevice);
 
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
+    if ((window as any).__pwaPrompt) {
+      setDeferredPrompt((window as any).__pwaPrompt);
+    }
+
+    const onPromptReady = () => {
+      setDeferredPrompt((window as any).__pwaPrompt);
     };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('pwa-prompt-ready', onPromptReady);
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('pwa-prompt-ready', onPromptReady);
     };
   }, []);
 
   const handleInstallClick = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const choiceResult = await deferredPrompt.userChoice;
+    const prompt = deferredPrompt || (window as any).__pwaPrompt;
+    if (prompt) {
+      prompt.prompt();
+      const choiceResult = await prompt.userChoice;
       if (choiceResult.outcome === 'accepted') {
         setIsStandalone(true);
       }
       setDeferredPrompt(null);
+      (window as any).__pwaPrompt = null;
     } else if (isIOS) {
       alert(
         'Para instalar en tu iPhone / iPad:\n1. Toca el botón "Compartir" (el ícono del cuadrado con la flecha hacia arriba abajo en Safari)\n2. Selecciona "Agregar a pantalla de inicio" 📲'

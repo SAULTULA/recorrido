@@ -407,6 +407,7 @@ export const PanelSuperAdmin: React.FC<PanelSuperAdminProps> = ({
               placeholder="Ingresa la nueva clave"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
+              autoComplete="new-password"
               style={{
                 padding: '10px',
                 border: '1px solid var(--color-border)',

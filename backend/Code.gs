@@ -11,7 +11,8 @@ const SHEET_NAMES = {
   PERSONAL: 'Personal',
   DIARIO: 'Horarios_Diarios',
   CHECKIN: 'Subidas_CheckIn',
-  AVISOS: 'Avisos_Alertas'
+  AVISOS: 'Avisos_Alertas',
+  CONFIG: 'Configuracion'
 };
 
 function initSheets() {
@@ -25,9 +26,37 @@ function initSheets() {
     'ID_Alumno', 'ID_Familia', 'Nombre_Alumno', 'DNI_Alumno', 'Escuela', 'Turno', 'Fecha_Alta'
   ]);
 
-  getOrCreateSheet(ss, SHEET_NAMES.PERSONAL, [
+  const sheetPersonal = getOrCreateSheet(ss, SHEET_NAMES.PERSONAL, [
     'ID_Personal', 'Nombre', 'DNI', 'Celular', 'Rol', 'Fecha_Alta'
   ]);
+
+  // Si Personal está vacío, pre-cargar el personal inicial
+  if (sheetPersonal.getLastRow() < 2) {
+    sheetPersonal.appendRow([
+      'STAFF-01',
+      'Auxiliar Control 1',
+      "'11111111",
+      "'1166508379",
+      'AUXILIAR',
+      new Date().toISOString()
+    ]);
+    sheetPersonal.appendRow([
+      'STAFF-02',
+      'Auxiliar Control 2',
+      "'22222222",
+      "'1166508379",
+      'AUXILIAR',
+      new Date().toISOString()
+    ]);
+    sheetPersonal.appendRow([
+      'STAFF-03',
+      'Encargado de Recorrido',
+      "'33333333",
+      "'1166508379",
+      'ENCARGADO_RECORRIDO',
+      new Date().toISOString()
+    ]);
+  }
   
   getOrCreateSheet(ss, SHEET_NAMES.DIARIO, [
     'ID_Diario', 'Fecha', 'ID_Alumno', 'Nombre_Alumno', 'Parada', 'Horario_Barrio', 'Horario_Ciudad', 'Usa_Ida', 'Usa_Vuelta', 'Ultima_Modificacion'
@@ -40,6 +69,18 @@ function initSheets() {
   getOrCreateSheet(ss, SHEET_NAMES.AVISOS, [
     'ID_Aviso', 'Fecha', 'ID_Alumno', 'Nombre_Alumno', 'Tipo', 'Detalle', 'Hora_Registro', 'Leido'
   ]);
+
+  const sheetConfig = getOrCreateSheet(ss, SHEET_NAMES.CONFIG, [
+    'Clave', 'Valor', 'Ultima_Modificacion'
+  ]);
+
+  // Si Configuración está vacía, pre-cargar valores del sistema
+  if (sheetConfig.getLastRow() < 2) {
+    sheetConfig.appendRow(['admin_password', 'admin123', new Date().toISOString()]);
+    sheetConfig.appendRow(['alias_pago', 'recorrido.escolar.transporte', new Date().toISOString()]);
+    sheetConfig.appendRow(['monto_cuota', '35.000', new Date().toISOString()]);
+    sheetConfig.appendRow(['superadmin_dni', 'admin', new Date().toISOString()]);
+  }
 }
 
 function getOrCreateSheet(ss, name, headers) {
@@ -106,6 +147,10 @@ function doPost(e) {
       return jsonResponse(guardarAviso(postData.data));
     }
 
+    if (action === 'guardarConfig') {
+      return jsonResponse(guardarConfig(postData.data));
+    }
+
     if (action === 'eliminarFamilia') {
       return jsonResponse(eliminarFamilia(postData.idFamilia || postData.id));
     }
@@ -162,18 +207,40 @@ function registrarPersonal(data) {
   initSheets();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheetPersonal = ss.getSheetByName(SHEET_NAMES.PERSONAL);
+  const rows = sheetPersonal.getDataRange().getValues();
+  const cleanDni = String(data.dni).trim();
   const idPersonal = data.id || ('STAFF-' + new Date().getTime());
+  const now = new Date().toISOString();
   
-  sheetPersonal.appendRow([
-    idPersonal,
-    data.nombre,
-    "'" + String(data.dni).trim(),
-    "'" + String(data.celular).trim(),
-    data.rol,
-    new Date().toISOString()
-  ]);
-  
-  return { success: true, idPersonal: idPersonal };
+  // Si ya existe el DNI o ID, actualizar fila
+  let existingRow = -1;
+  for (let i = 1; i < rows.length; i++) {
+    const rowId = String(rows[i][0]).trim();
+    const rowDni = String(rows[i][2]).replace(/'/g, '').trim();
+    if (rowDni === cleanDni || (data.id && rowId === String(data.id).trim())) {
+      existingRow = i + 1;
+      break;
+    }
+  }
+
+  if (existingRow > 1) {
+    sheetPersonal.getRange(existingRow, 2).setValue(data.nombre);
+    sheetPersonal.getRange(existingRow, 3).setValue("'" + cleanDni);
+    sheetPersonal.getRange(existingRow, 4).setValue("'" + String(data.celular).trim());
+    sheetPersonal.getRange(existingRow, 5).setValue(data.rol || 'AUXILIAR');
+    sheetPersonal.getRange(existingRow, 6).setValue(now);
+    return { success: true, idPersonal: rows[existingRow - 1][0], updated: true };
+  } else {
+    sheetPersonal.appendRow([
+      idPersonal,
+      data.nombre,
+      "'" + cleanDni,
+      "'" + String(data.celular).trim(),
+      data.rol || 'AUXILIAR',
+      now
+    ]);
+    return { success: true, idPersonal: idPersonal, updated: false };
+  }
 }
 
 function guardarHorarioDiario(data) {
@@ -284,6 +351,46 @@ function deleteRowByColumnValue(sheet, colIndex, value) {
   }
 }
 
+function guardarConfig(data) {
+  initSheets();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheetConfig = ss.getSheetByName(SHEET_NAMES.CONFIG);
+  if (!sheetConfig) return { error: 'No existe hoja de configuracion' };
+  const rows = sheetConfig.getDataRange().getValues();
+  const now = new Date().toISOString();
+
+  for (const key in data) {
+    let found = false;
+    for (let i = 1; i < rows.length; i++) {
+      if (String(rows[i][0]).trim() === String(key).trim()) {
+        sheetConfig.getRange(i + 1, 2).setValue(String(data[key]));
+        sheetConfig.getRange(i + 1, 3).setValue(now);
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      sheetConfig.appendRow([key, String(data[key]), now]);
+    }
+  }
+  return { success: true };
+}
+
+function getConfig() {
+  initSheets();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheetConfig = ss.getSheetByName(SHEET_NAMES.CONFIG);
+  if (!sheetConfig) return {};
+  const rows = sheetConfig.getDataRange().getValues();
+  const config = {};
+  for (let i = 1; i < rows.length; i++) {
+    const key = String(rows[i][0]).trim();
+    const val = String(rows[i][1]).trim();
+    if (key) config[key] = val;
+  }
+  return config;
+}
+
 function getAllData() {
   initSheets();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -293,7 +400,8 @@ function getAllData() {
     personal: sheetToObjects(ss.getSheetByName(SHEET_NAMES.PERSONAL)),
     diario: sheetToObjects(ss.getSheetByName(SHEET_NAMES.DIARIO)),
     checkins: sheetToObjects(ss.getSheetByName(SHEET_NAMES.CHECKIN)),
-    avisos: sheetToObjects(ss.getSheetByName(SHEET_NAMES.AVISOS))
+    avisos: sheetToObjects(ss.getSheetByName(SHEET_NAMES.AVISOS)),
+    config: getConfig()
   };
 }
 

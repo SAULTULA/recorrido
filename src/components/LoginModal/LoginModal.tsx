@@ -335,6 +335,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 placeholder="Ingresa la clave maestra de administrador"
                 value={adminPassword}
                 onChange={(e) => setAdminPassword(e.target.value)}
+                autoComplete="current-password"
                 required
               />
               <span style={{ fontSize: '11px', color: 'var(--color-text-light)' }}>
@@ -351,6 +352,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   placeholder="Ingresa el DNI con el que te registraste"
                   value={dni}
                   onChange={(e) => setDni(e.target.value)}
+                  autoComplete="username"
                   required
                 />
               </div>
@@ -363,6 +365,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   placeholder="Tu nombre"
                   value={nombre}
                   onChange={(e) => setNombre(e.target.value)}
+                  autoComplete="name"
                 />
               </div>
             </>
