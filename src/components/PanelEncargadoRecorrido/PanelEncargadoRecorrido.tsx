@@ -87,7 +87,7 @@ Esperamos se encuentre muy bien. Nos comunicamos desde la Coordinación del Reco
 *Detalles para la transferencia:*
 • Monto sugerido: $${montoCuota}
 • Alias de transferencia: *${aliasPago}*
-• Titular: Recorrido Escolar Oficiales / Suboficiales
+• Titular: Control de Transporte Escolar Tala
 
 Una vez realizado el abono, le solicitamos tenga a bien enviarnos el comprobante por este mismo medio para asentar el registro.
 

@@ -136,6 +136,18 @@
   color: var(--color-text-main);
 }
 
+.navbar__btn--install {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: var(--color-text-white);
+  border: none;
+  font-weight: var(--font-weight-bold);
+  box-shadow: 0 2px 4px rgba(30, 58, 138, 0.2);
+}
+
+.navbar__btn--install:hover {
+  filter: brightness(1.1);
+}
+
 .navbar__reminder-pill {
   display: inline-flex;
   align-items: center;

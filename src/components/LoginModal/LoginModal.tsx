@@ -45,7 +45,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onLogin, onGoToRegister 
         </div>
         <h1 className={styles.loginModal__title}>Recorrido Escolar</h1>
         <p className={styles.loginModal__subtitle}>
-          Control de asistencia y transporte para Oficiales y Suboficiales
+          Control de Transporte Escolar Tala
         </p>
       </div>
 

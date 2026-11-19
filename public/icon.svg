@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="busGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a8a" />
+      <stop offset="100%" stop-color="#1e40af" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+  </defs>
+  <!-- Background Rounded Circle -->
+  <rect width="512" height="512" rx="128" fill="url(#busGrad)" />
+  
+  <!-- Bus Body -->
+  <rect x="96" y="112" width="320" height="256" rx="48" fill="#ffffff" />
+  
+  <!-- Top Roof Indicator -->
+  <rect x="144" y="140" width="224" height="24" rx="8" fill="url(#goldGrad)" />
+  
+  <!-- Front Windshield -->
+  <rect x="128" y="180" width="256" height="96" rx="16" fill="#e2e8f0" />
+  <line x1="256" y1="180" x2="256" y2="276" stroke="#ffffff" stroke-width="6" />
+  
+  <!-- Front Grille & Lights -->
+  <circle cx="152" cy="316" r="18" fill="url(#goldGrad)" />
+  <circle cx="360" cy="316" r="18" fill="url(#goldGrad)" />
+  
+  <rect x="196" y="304" width="120" height="24" rx="6" fill="#cbd5e1" />
+  <line x1="216" y1="316" x2="296" y2="316" stroke="#64748b" stroke-width="4" />
+  
+  <!-- Wheels -->
+  <rect x="112" y="368" width="56" height="40" rx="12" fill="#0f172a" />
+  <rect x="344" y="368" width="56" height="40" rx="12" fill="#0f172a" />
+  
+  <!-- Bumper -->
+  <rect x="128" y="348" width="256" height="20" rx="8" fill="#334155" />
+</svg>

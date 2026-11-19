@@ -135,7 +135,7 @@ export const App: React.FC = () => {
       <footer className={styles.app__footer}>
         <div className={styles.app__footerContainer}>
           <span>
-            Recorrido Escolar • Sistema de Asistencia de Oficiales y Suboficiales
+            Recorrido Escolar • Control de Transporte Escolar Tala
           </span>
           <span>
             Desarrollado con Google Apps Script & Sheets • Seguro, gratuito y sin servidores
