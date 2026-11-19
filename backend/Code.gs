@@ -217,7 +217,7 @@ function marcarSubida(data) {
     "'" + horaMarcado,
     '',
     'A_BORDO',
-    data.responsableControl || 'Encargada'
+    data.responsableControl || 'Auxiliar'
   ]);
   
   return { success: true, idCheckIn: idCheckIn };

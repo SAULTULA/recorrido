@@ -21,7 +21,7 @@ interface PanelSuperAdminProps {
 export const PanelSuperAdmin: React.FC<PanelSuperAdminProps> = ({
   onOpenRegisterPersonal
 }) => {
-  const [activeTab, setActiveTab] = useState<'FAMILIAS' | 'ENCARGADAS' | 'ENCARGADOS' | 'AJUSTES'>(
+  const [activeTab, setActiveTab] = useState<'FAMILIAS' | 'AUXILIARES' | 'ENCARGADOS' | 'AJUSTES'>(
     'FAMILIAS'
   );
   const [familias, setFamilias] = useState<Familia[]>([]);
@@ -71,12 +71,12 @@ export const PanelSuperAdmin: React.FC<PanelSuperAdminProps> = ({
   const handleDeletePersonal = (id: string, nombre: string, rol: string) => {
     if (
       window.confirm(
-        `[SUPERADMIN] ¿Confirmas la baja y eliminación de la encargada/personal ${nombre} (${rol})?`
+        `[SUPERADMIN] ¿Confirmas la baja y eliminación del auxiliar/personal ${nombre} (${rol})?`
       )
     ) {
       apiService.deletePersonal(id);
       loadData();
-      showNotice(`${nombre} eliminada del padrón de personal.`);
+      showNotice(`${nombre} eliminado/a del padrón de personal.`);
     }
   };
 
@@ -88,7 +88,9 @@ export const PanelSuperAdmin: React.FC<PanelSuperAdminProps> = ({
     showNotice('Clave de SuperAdmin actualizada con éxito.');
   };
 
-  const encargadas = personal.filter((p) => p.rol === 'ENCARGADA_CONTROL');
+  const auxiliares = personal.filter(
+    (p) => p.rol === 'AUXILIAR' || p.rol === 'ENCARGADA_CONTROL'
+  );
   const coordinadores = personal.filter((p) => p.rol === 'ENCARGADO_RECORRIDO');
 
   return (
@@ -102,7 +104,7 @@ export const PanelSuperAdmin: React.FC<PanelSuperAdminProps> = ({
           <div>
             <h2 className={styles.superAdmin__title}>Panel de Control SuperAdmin</h2>
             <p className={styles.superAdmin__subtitle}>
-              Administración central: eliminación de padres, reseteos y control de las encargadas
+              Administración central: eliminación de padres, reseteos y control de auxiliares
             </p>
           </div>
         </div>
@@ -167,12 +169,12 @@ export const PanelSuperAdmin: React.FC<PanelSuperAdminProps> = ({
         <button
           type="button"
           className={`${styles.superAdmin__navTab} ${
-            activeTab === 'ENCARGADAS' ? styles['superAdmin__navTab--active'] : ''
+            activeTab === 'AUXILIARES' ? styles['superAdmin__navTab--active'] : ''
           }`}
-          onClick={() => setActiveTab('ENCARGADAS')}
+          onClick={() => setActiveTab('AUXILIARES')}
         >
           <UserCheck size={16} />
-          <span>Encargadas de Control ({encargadas.length}/2)</span>
+          <span>Auxiliares de Control ({auxiliares.length}/2)</span>
         </button>
 
         <button
@@ -265,14 +267,14 @@ export const PanelSuperAdmin: React.FC<PanelSuperAdminProps> = ({
         </div>
       )}
 
-      {/* TAB 2: ENCARGADAS DE CONTROL */}
-      {activeTab === 'ENCARGADAS' && (
+      {/* TAB 2: AUXILIARES DE CONTROL */}
+      {activeTab === 'AUXILIARES' && (
         <div className={styles.superAdmin__card}>
           <div className={styles.superAdmin__cardHeader}>
             <div>
-              <span style={{ fontWeight: 700 }}>Encargadas de Control en Colectivo (2 asignadas)</span>
+              <span style={{ fontWeight: 700 }}>Auxiliares de Control en Colectivo (2 asignadas)</span>
               <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: 0 }}>
-                Personal autorizado para marcar las subidas en viaje
+                Personal autorizado para marcar las subidas y bajadas en viaje
               </p>
             </div>
             <button
@@ -281,7 +283,7 @@ export const PanelSuperAdmin: React.FC<PanelSuperAdminProps> = ({
               style={{ backgroundColor: 'var(--color-primary)', color: '#fff' }}
               onClick={onOpenRegisterPersonal}
             >
-              + Alta de Encargada
+              + Alta de Auxiliar
             </button>
           </div>
 
@@ -297,14 +299,14 @@ export const PanelSuperAdmin: React.FC<PanelSuperAdminProps> = ({
                 </tr>
               </thead>
               <tbody>
-                {encargadas.length === 0 ? (
+                {auxiliares.length === 0 ? (
                   <tr>
                     <td colSpan={5} style={{ textAlign: 'center', padding: '24px', color: 'var(--color-text-muted)' }}>
-                      No hay encargadas de control registradas. Puedes registrar a las 2 encargadas con el botón de arriba.
+                      No hay auxiliares de control registradas. Puedes registrar a las 2 auxiliares con el botón de arriba.
                     </td>
                   </tr>
                 ) : (
-                  encargadas.map((p) => (
+                  auxiliares.map((p) => (
                     <tr key={p.id}>
                       <td style={{ fontWeight: 700 }}>{p.nombre}</td>
                       <td>{p.dni}</td>
@@ -314,11 +316,11 @@ export const PanelSuperAdmin: React.FC<PanelSuperAdminProps> = ({
                         <button
                           type="button"
                           className={styles.superAdmin__btnDelete}
-                          onClick={() => handleDeletePersonal(p.id, p.nombre, 'Encargada de Control')}
-                          title="Eliminar y dar de baja a la encargada"
+                          onClick={() => handleDeletePersonal(p.id, p.nombre, 'Auxiliar de Control')}
+                          title="Eliminar y dar de baja al auxiliar"
                         >
                           <Trash2 size={13} />
-                          <span>Eliminar Encargada</span>
+                          <span>Eliminar Auxiliar</span>
                         </button>
                       </td>
                     </tr>

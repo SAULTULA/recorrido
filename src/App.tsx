@@ -22,8 +22,8 @@ export const App: React.FC = () => {
   const [isRegisteringPadre, setIsRegisteringPadre] = useState<boolean>(false);
   const [isRegisteringPersonal, setIsRegisteringPersonal] = useState<boolean>(false);
   const [defaultPersonalRole, setDefaultPersonalRole] = useState<
-    'ENCARGADA_CONTROL' | 'ENCARGADO_RECORRIDO'
-  >('ENCARGADA_CONTROL');
+    'AUXILIAR' | 'ENCARGADA_CONTROL' | 'ENCARGADO_RECORRIDO'
+  >('AUXILIAR');
 
   const [isBackendModalOpen, setIsBackendModalOpen] = useState<boolean>(false);
   const [backendStatus, setBackendStatus] = useState<BackendStatus>({
@@ -142,15 +142,15 @@ export const App: React.FC = () => {
         ) : currentRole === 'PADRE' && currentFamilia ? (
           /* Caso 4: Panel del Padre con Botonera, Envío de Horarios y Estado de Subida */
           <PanelPadre familia={currentFamilia} isNightTime={isNightTime} />
-        ) : currentRole === 'ENCARGADA_CONTROL' ? (
-          /* Caso 5: Panel de la Encargada de Control */
+        ) : currentRole === 'ENCARGADA_CONTROL' || currentRole === 'AUXILIAR' ? (
+          /* Caso 5: Panel de Auxiliar de Control */
           <PanelEncargada controllerName={userName} />
         ) : currentRole === 'ENCARGADO_RECORRIDO' ? (
-          /* Caso 6: Panel del Encargado de Recorrido (con bajas de usuarios y encargadas) */
+          /* Caso 6: Panel del Encargado de Recorrido (con bajas de usuarios y auxiliares) */
           <PanelEncargadoRecorrido
             isSuperAdmin={false}
             onOpenRegisterPersonal={() => {
-              setDefaultPersonalRole('ENCARGADA_CONTROL');
+              setDefaultPersonalRole('AUXILIAR');
               setIsRegisteringPersonal(true);
             }}
           />
@@ -158,7 +158,7 @@ export const App: React.FC = () => {
           /* Caso 7: Panel del SuperAdmin con Control y Eliminación Total */
           <PanelSuperAdmin
             onOpenRegisterPersonal={() => {
-              setDefaultPersonalRole('ENCARGADA_CONTROL');
+              setDefaultPersonalRole('AUXILIAR');
               setIsRegisteringPersonal(true);
             }}
           />

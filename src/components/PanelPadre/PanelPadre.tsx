@@ -63,7 +63,7 @@ export const PanelPadre: React.FC<PanelPadreProps> = ({ familia, isNightTime }) 
 
   useEffect(() => {
     loadData();
-    // Auto-polling cada 5 segundos para ver en tiempo real si la encargada marcó la subida o bajada
+    // Auto-polling cada 5 segundos para ver en tiempo real si el/la auxiliar marcó la subida o bajada
     const interval = setInterval(loadData, 5000);
     return () => clearInterval(interval);
   }, [targetDate, todayStr]);
@@ -97,7 +97,7 @@ export const PanelPadre: React.FC<PanelPadreProps> = ({ familia, isNightTime }) 
     }
   }, [selectedHijoId, currentHorario, targetDate]);
 
-  // Buscar si la encargada ya marcó el check-in (subida) de este niño hoy
+  // Buscar si el/la auxiliar ya marcó el check-in (subida) de este niño hoy
   const checkinIda = checkins.find(
     (c: any) =>
       (c.idAlumno === selectedHijo?.id ||
@@ -212,7 +212,7 @@ export const PanelPadre: React.FC<PanelPadreProps> = ({ familia, isNightTime }) 
               ⏰ Recordatorio de las 20:00 hs - Confirmación de Horarios
             </div>
             <div className={styles.panelPadre__reminderDesc}>
-              Por favor seleccione los horarios de sus hijos y presione <strong>"Subir y Confirmar Horarios"</strong> para que la encargada arme el recorrido del micro.
+              Por favor seleccione los horarios de sus hijos y presione <strong>"Subir y Confirmar Horarios"</strong> para que el/la auxiliar arme el recorrido del micro.
             </div>
           </div>
         </div>
@@ -405,7 +405,7 @@ export const PanelPadre: React.FC<PanelPadreProps> = ({ familia, isNightTime }) 
                 ? `Registrado a las ${checkinIda.horaMarcado} hs por ${checkinIda.responsableControl} en ${checkinIda.parada}. Se encuentra en viaje a bordo.`
                 : currentHorario?.usaIda === false
                 ? 'Aviso de retiro particular registrado.'
-                : 'La encargada marcará su subida cuando suba al colectivo en su parada.'}
+                : 'El/la auxiliar marcará su subida cuando suba al colectivo en su parada.'}
             </span>
           </div>
         </div>
@@ -619,7 +619,7 @@ export const PanelPadre: React.FC<PanelPadreProps> = ({ familia, isNightTime }) 
           </span>
         </button>
         <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
-          Al presionar este botón, los horarios quedarán asentados como vigentes para la encargada del micro.
+          Al presionar este botón, los horarios quedarán asentados como vigentes para el/la auxiliar del micro.
         </span>
       </div>
     </div>

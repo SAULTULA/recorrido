@@ -105,7 +105,7 @@ export const PanelEncargadoRecorrido: React.FC<PanelEncargadoRecorridoProps> = (
   const handleDeletePersonal = (id: string, nombre: string, rol: string) => {
     if (
       window.confirm(
-        `¿Confirmas la baja y eliminación de la encargada/personal ${nombre} (${rol})?`
+        `¿Confirmas la baja y eliminación del auxiliar/personal ${nombre} (${rol})?`
       )
     ) {
       apiService.deletePersonal(id);
@@ -301,7 +301,7 @@ Atentamente,
           onClick={() => setActiveTab('PERSONAL')}
         >
           <ShieldCheck size={16} />
-          <span>Personal y Encargadas ({personal.length})</span>
+          <span>Personal y Auxiliares ({personal.length})</span>
         </button>
 
         <button
@@ -562,12 +562,12 @@ Atentamente,
         </div>
       )}
 
-      {/* TAB 3: GESTIÓN Y ELIMINACIÓN DE PERSONAL / ENCARGADAS */}
+      {/* TAB 3: GESTIÓN Y ELIMINACIÓN DE PERSONAL / AUXILIARES */}
       {activeTab === 'PERSONAL' && (
         <div className={styles.panelCoordinador__tableCard}>
           <div className={styles.panelCoordinador__tableHeader}>
             <h3 style={{ fontWeight: 700, fontSize: 'var(--font-size-md)' }}>
-              Personal de Control y Encargadas Registradas
+              Personal de Control y Auxiliares Registrados
             </h3>
             {onOpenRegisterPersonal && (
               <button
@@ -587,7 +587,7 @@ Atentamente,
                 onClick={onOpenRegisterPersonal}
               >
                 <UserPlus size={14} />
-                <span>+ Registrar Nueva Encargada / Encargado</span>
+                <span>+ Registrar Auxiliar / Encargado</span>
               </button>
             )}
           </div>
@@ -608,7 +608,7 @@ Atentamente,
                 {personal.length === 0 ? (
                   <tr>
                     <td colSpan={6} style={{ textAlign: 'center', padding: 'var(--spacing-xl)', color: 'var(--color-text-muted)' }}>
-                      No hay personal registrado aún. Haz clic en "Registrar Nueva Encargada" para dar de alta.
+                      No hay personal registrado aún. Haz clic en "Registrar Auxiliar" para dar de alta.
                     </td>
                   </tr>
                 ) : (
@@ -620,13 +620,13 @@ Atentamente,
                           className={styles.panelCoordinador__badge}
                           style={{
                             backgroundColor:
-                              p.rol === 'ENCARGADA_CONTROL' ? '#dcfce7' : 'var(--color-primary-light)',
+                              p.rol === 'AUXILIAR' || p.rol === 'ENCARGADA_CONTROL' ? '#dcfce7' : 'var(--color-primary-light)',
                             color:
-                              p.rol === 'ENCARGADA_CONTROL' ? '#15803d' : 'var(--color-primary)'
+                              p.rol === 'AUXILIAR' || p.rol === 'ENCARGADA_CONTROL' ? '#15803d' : 'var(--color-primary)'
                           }}
                         >
-                          {p.rol === 'ENCARGADA_CONTROL'
-                            ? 'Encargada de Control'
+                          {p.rol === 'AUXILIAR' || p.rol === 'ENCARGADA_CONTROL'
+                            ? 'Auxiliar de Control'
                             : 'Encargado de Recorrido'}
                         </span>
                       </td>

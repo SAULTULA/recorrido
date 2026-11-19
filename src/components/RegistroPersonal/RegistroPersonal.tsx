@@ -7,18 +7,18 @@ import { apiService } from '../../services/api';
 interface RegistroPersonalProps {
   onSuccess: (staff: PersonalStaff) => void;
   onCancel: () => void;
-  defaultRole?: 'ENCARGADA_CONTROL' | 'ENCARGADO_RECORRIDO';
+  defaultRole?: 'AUXILIAR' | 'ENCARGADA_CONTROL' | 'ENCARGADO_RECORRIDO';
 }
 
 export const RegistroPersonal: React.FC<RegistroPersonalProps> = ({
   onSuccess,
   onCancel,
-  defaultRole = 'ENCARGADA_CONTROL'
+  defaultRole = 'AUXILIAR'
 }) => {
   const [nombre, setNombre] = useState('');
   const [dni, setDni] = useState('');
   const [celular, setCelular] = useState('');
-  const [rol, setRol] = useState<'ENCARGADA_CONTROL' | 'ENCARGADO_RECORRIDO'>(defaultRole);
+  const [rol, setRol] = useState<'AUXILIAR' | 'ENCARGADA_CONTROL' | 'ENCARGADO_RECORRIDO'>(defaultRole);
   const [errorMsg, setErrorMsg] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -51,7 +51,7 @@ export const RegistroPersonal: React.FC<RegistroPersonalProps> = ({
           <div>
             <h2 className={styles.regPersonal__title}>Alta de Personal de Control</h2>
             <p className={styles.regPersonal__subtitle}>
-              Registro de Encargadas y Encargados del Recorrido Tala
+              Registro de Auxiliares y Encargados del Recorrido Tala
             </p>
           </div>
         </div>
@@ -75,7 +75,7 @@ export const RegistroPersonal: React.FC<RegistroPersonalProps> = ({
             value={rol}
             onChange={(e) => setRol(e.target.value as any)}
           >
-            <option value="ENCARGADA_CONTROL">Encargada de Control (Sube al colectivo)</option>
+            <option value="AUXILIAR">Auxiliar de Control (Sube al colectivo)</option>
             <option value="ENCARGADO_RECORRIDO">Encargado de Recorrido (Coordinación y gestión)</option>
           </select>
         </div>

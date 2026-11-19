@@ -70,8 +70,9 @@ export const Navbar: React.FC<NavbarProps> = ({
     switch (role) {
       case 'PADRE':
         return 'Padre / Tutor';
+      case 'AUXILIAR':
       case 'ENCARGADA_CONTROL':
-        return 'Encargada de Control';
+        return 'Auxiliar de Control';
       case 'ENCARGADO_RECORRIDO':
         return 'Encargado de Recorrido';
       case 'SUPERADMIN':

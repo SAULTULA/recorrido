@@ -1,5 +1,6 @@
 export type UserRole =
   | 'PADRE'
+  | 'AUXILIAR'
   | 'ENCARGADA_CONTROL'
   | 'ENCARGADO_RECORRIDO'
   | 'SUPERADMIN';
@@ -81,7 +82,7 @@ export interface PersonalStaff {
   nombre: string;
   dni: string;
   celular: string;
-  rol: 'ENCARGADA_CONTROL' | 'ENCARGADO_RECORRIDO';
+  rol: 'AUXILIAR' | 'ENCARGADA_CONTROL' | 'ENCARGADO_RECORRIDO';
   fechaRegistro: string;
 }
 

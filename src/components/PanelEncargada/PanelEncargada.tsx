@@ -216,7 +216,7 @@ export const PanelEncargada: React.FC<PanelEncargadaProps> = ({ controllerName }
         <div className={styles.panelEncargada__controlHeader}>
           <div className={styles.panelEncargada__titleGroup}>
             <Bus size={26} color="var(--color-primary)" />
-            <h2 className={styles.panelEncargada__title}>Control de Abordaje y Subida</h2>
+            <h2 className={styles.panelEncargada__title}>Panel de Auxiliar - Control de Abordaje</h2>
           </div>
 
           {/* Selector de Sentido */}

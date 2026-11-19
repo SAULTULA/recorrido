@@ -72,17 +72,17 @@ export const LoginModal: React.FC<LoginModalProps> = ({
       return;
     }
 
-    // 3. Caso Encargada de Control
-    if (role === 'ENCARGADA_CONTROL') {
+    // 3. Caso Auxiliar de Control
+    if (role === 'ENCARGADA_CONTROL' || (role as string) === 'AUXILIAR') {
       const match = personal.find(
-        (p) => String(p.dni).trim().toLowerCase() === cleanDni && p.rol === 'ENCARGADA_CONTROL'
+        (p) => String(p.dni).trim().toLowerCase() === cleanDni && (p.rol === 'AUXILIAR' || p.rol === 'ENCARGADA_CONTROL')
       );
 
       if (match) {
         onLogin(role, match.nombre, match.dni);
       } else {
         setErrorMsg(
-          `No existe una Encargada de Control registrada con el DNI ${dni.trim()}. Debe darse de alta en la pestaña Registrarse.`
+          `No existe un/a Auxiliar de Control registrado/a con el DNI ${dni.trim()}. Debe darse de alta en la pestaña Registrarse.`
         );
       }
       return;
@@ -185,10 +185,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             </div>
             <div className={styles.loginModal__regCardText}>
               <span className={styles.loginModal__regCardTitle}>
-                Registro de Encargada de Control
+                Registro de Auxiliar de Control
               </span>
               <span className={styles.loginModal__regCardDesc}>
-                Personal asignado al colectivo para marcar subidas de los niños.
+                Personal asignado al colectivo para marcar subidas y bajadas de los niños.
               </span>
             </div>
             <ArrowRight size={18} color="var(--color-secondary)" />
@@ -277,7 +277,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               <button
                 type="button"
                 className={`${styles.loginModal__roleOption} ${
-                  role === 'ENCARGADA_CONTROL' ? styles['loginModal__roleOption--active'] : ''
+                  role === 'ENCARGADA_CONTROL' || (role as string) === 'AUXILIAR'
+                    ? styles['loginModal__roleOption--active']
+                    : ''
                 }`}
                 onClick={() => {
                   setRole('ENCARGADA_CONTROL');
@@ -287,7 +289,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 <div className={styles.loginModal__roleIcon}>
                   <ClipboardCheck size={16} />
                 </div>
-                <span className={styles.loginModal__roleTitle}>Encargada</span>
+                <span className={styles.loginModal__roleTitle}>Auxiliar</span>
               </button>
 
               <button
