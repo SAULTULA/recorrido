@@ -91,7 +91,7 @@ export function normalizeTimeString(val: any): string {
 }
 
 const DEFAULT_BACKEND_URL =
-  'https://script.google.com/macros/s/AKfycbyaRBe41sqNP7MtSyjnSar2XSTUODSYiS4QqaxxMH8F6DXjWnM_heRWh52rLRrqjcaQzA/exec';
+  'https://script.google.com/macros/s/AKfycbwr3R_NgYVaNyFFaNX2l9sfiQxwzwi_gvmSkXBjeATR-L5bEheLjucGZkLh6SXhWeAMaw/exec';
 
 export const DEFAULT_PERSONAL: PersonalStaff[] = [
   {
@@ -122,7 +122,15 @@ export const DEFAULT_PERSONAL: PersonalStaff[] = [
 
 export const apiService = {
   getBackendUrl(): string {
-    return localStorage.getItem(STORAGE_KEYS.BACKEND_URL) || DEFAULT_BACKEND_URL;
+    const stored = localStorage.getItem(STORAGE_KEYS.BACKEND_URL);
+    if (
+      !stored ||
+      stored.includes('AKfycbyaRBe41sqNP7MtSyjnSar2XSTUODSYiS4QqaxxMH8F6DXjWnM_heRWh52rLRrqjcaQzA')
+    ) {
+      localStorage.setItem(STORAGE_KEYS.BACKEND_URL, DEFAULT_BACKEND_URL);
+      return DEFAULT_BACKEND_URL;
+    }
+    return stored;
   },
 
   setBackendUrl(url: string): void {
