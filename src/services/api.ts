@@ -93,6 +93,33 @@ export function normalizeTimeString(val: any): string {
 const DEFAULT_BACKEND_URL =
   'https://script.google.com/macros/s/AKfycbyaRBe41sqNP7MtSyjnSar2XSTUODSYiS4QqaxxMH8F6DXjWnM_heRWh52rLRrqjcaQzA/exec';
 
+export const DEFAULT_PERSONAL: PersonalStaff[] = [
+  {
+    id: 'staff-01',
+    nombre: 'Auxiliar Control 1',
+    dni: '11111111',
+    celular: '1166508379',
+    rol: 'AUXILIAR',
+    fechaRegistro: '2026-11-19'
+  },
+  {
+    id: 'staff-02',
+    nombre: 'Auxiliar Control 2',
+    dni: '22222222',
+    celular: '1166508379',
+    rol: 'AUXILIAR',
+    fechaRegistro: '2026-11-19'
+  },
+  {
+    id: 'staff-03',
+    nombre: 'Encargado de Recorrido',
+    dni: '33333333',
+    celular: '1166508379',
+    rol: 'ENCARGADO_RECORRIDO',
+    fechaRegistro: '2026-11-19'
+  }
+];
+
 export const apiService = {
   getBackendUrl(): string {
     return localStorage.getItem(STORAGE_KEYS.BACKEND_URL) || DEFAULT_BACKEND_URL;
@@ -378,11 +405,19 @@ export const apiService = {
 
   getPersonal(): PersonalStaff[] {
     const raw = localStorage.getItem(STORAGE_KEYS.PERSONAL);
-    if (!raw) return [];
+    if (!raw) {
+      localStorage.setItem(STORAGE_KEYS.PERSONAL, JSON.stringify(DEFAULT_PERSONAL));
+      return DEFAULT_PERSONAL;
+    }
     try {
-      return JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+      localStorage.setItem(STORAGE_KEYS.PERSONAL, JSON.stringify(DEFAULT_PERSONAL));
+      return DEFAULT_PERSONAL;
     } catch {
-      return [];
+      return DEFAULT_PERSONAL;
     }
   },
 
