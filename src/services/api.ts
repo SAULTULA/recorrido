@@ -32,9 +32,12 @@ export function getCurrentTimeStr(): string {
   return `${h}:${m}`;
 }
 
+const DEFAULT_BACKEND_URL =
+  'https://script.google.com/macros/s/AKfycbyaRBe41sqNP7MtSyjnSar2XSTUODSYiS4QqaxxMH8F6DXjWnM_heRWh52rLRrqjcaQzA/exec';
+
 export const apiService = {
   getBackendUrl(): string {
-    return localStorage.getItem(STORAGE_KEYS.BACKEND_URL) || '';
+    return localStorage.getItem(STORAGE_KEYS.BACKEND_URL) || DEFAULT_BACKEND_URL;
   },
 
   setBackendUrl(url: string): void {
