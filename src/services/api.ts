@@ -66,6 +66,16 @@ export function isTimeLockedForToday(timeStr: string): boolean {
 }
 
 /**
+ * Determina si ya se habilitó la visualización/confirmación oficial de horarios para el día de mañana.
+ * Habilitado a partir de las 18:30 hs.
+ */
+export function isTomorrowBookingAllowed(): boolean {
+  const now = new Date();
+  const currentMins = now.getHours() * 60 + now.getMinutes();
+  return currentMins >= (18 * 60 + 30); // 18:30 hs
+}
+
+/**
  * Normaliza horas que Google Sheets o Apps Script devuelven como fechas ISO (ej: 1899-12-30T10:41:48.000Z)
  */
 export function normalizeTimeString(val: any): string {

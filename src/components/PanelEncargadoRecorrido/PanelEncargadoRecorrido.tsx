@@ -13,7 +13,8 @@ import {
   MessageSquare,
   Trash2,
   UserPlus,
-  ShieldCheck
+  ShieldCheck,
+  Calendar
 } from 'lucide-react';
 import styles from './PanelEncargadoRecorrido.module.css';
 import {
@@ -25,7 +26,7 @@ import {
   HORARIOS_SALIDA_BARRIO,
   HORARIOS_SALIDA_CIUDAD
 } from '../../types';
-import { apiService, getTodayDateStr } from '../../services/api';
+import { apiService, getTodayDateStr, getTomorrowDateStr } from '../../services/api';
 
 interface PanelEncargadoRecorridoProps {
   onOpenRegisterPersonal?: () => void;
@@ -54,19 +55,22 @@ export const PanelEncargadoRecorrido: React.FC<PanelEncargadoRecorridoProps> = (
   const [copiedFamilyId, setCopiedFamilyId] = useState<string | null>(null);
 
   const todayStr = getTodayDateStr();
+  const tomorrowStr = getTomorrowDateStr();
+  const [targetDate, setTargetDate] = useState<string>(todayStr);
+  const isTomorrow = targetDate === tomorrowStr;
 
   const loadData = () => {
     setFamilias(apiService.getFamilias());
     setPersonal(apiService.getPersonal());
-    setHorarios(apiService.getHorariosDiarios(todayStr));
-    setCheckins(apiService.getCheckIns(todayStr));
+    setHorarios(apiService.getHorariosDiarios(targetDate));
+    setCheckins(apiService.getCheckIns(targetDate));
   };
 
   useEffect(() => {
     loadData();
     const interval = setInterval(loadData, 8000);
     return () => clearInterval(interval);
-  }, [todayStr]);
+  }, [targetDate, todayStr]);
 
   const availableTimes =
     sentido === 'SALIDA_BARRIO' ? HORARIOS_SALIDA_BARRIO : HORARIOS_SALIDA_CIUDAD;
@@ -163,7 +167,7 @@ Atentamente,
 
     familias.forEach((fam) => {
       fam.hijos.forEach((hijo) => {
-        const config = horarios.find((h) => h.idAlumno === hijo.id && h.fecha === todayStr);
+        const config = horarios.find((h) => h.idAlumno === hijo.id && h.fecha === targetDate);
         if (!config) return;
 
         let viaja = false;
@@ -183,7 +187,7 @@ Atentamente,
               c.idAlumno === hijo.id &&
               c.sentido === sentido &&
               c.horario === selectedTime &&
-              c.fecha === todayStr
+              c.fecha === targetDate
           );
           list.push({
             alumnoNombre: hijo.nombre,
@@ -319,6 +323,64 @@ Atentamente,
       {/* TAB 1: MONITOREO EN VIVO */}
       {activeTab === 'MONITOREO' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
+          {/* Selector de Fecha */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 'var(--spacing-xs)',
+              flexWrap: 'wrap',
+              padding: 'var(--spacing-xs) var(--spacing-sm)',
+              backgroundColor: 'var(--color-bg-card)',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--color-border)'
+            }}
+          >
+            <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'bold', color: 'var(--color-text-main)' }}>
+              Fecha a monitorear:
+            </span>
+            <button
+              type="button"
+              style={{
+                padding: '6px 14px',
+                borderRadius: 'var(--radius-full)',
+                fontSize: 'var(--font-size-xs)',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                backgroundColor: !isTomorrow ? 'var(--color-primary)' : 'var(--color-bg-subtle)',
+                color: !isTomorrow ? '#fff' : 'var(--color-text-muted)',
+                border: '1px solid var(--color-border)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6
+              }}
+              onClick={() => setTargetDate(todayStr)}
+            >
+              <Calendar size={14} />
+              <span>🚌 Hoy ({todayStr})</span>
+            </button>
+            <button
+              type="button"
+              style={{
+                padding: '6px 14px',
+                borderRadius: 'var(--radius-full)',
+                fontSize: 'var(--font-size-xs)',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                backgroundColor: isTomorrow ? 'var(--color-primary)' : 'var(--color-bg-subtle)',
+                color: isTomorrow ? '#fff' : 'var(--color-text-muted)',
+                border: '1px solid var(--color-border)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6
+              }}
+              onClick={() => setTargetDate(tomorrowStr)}
+            >
+              <Calendar size={14} />
+              <span>📋 Mañana ({tomorrowStr})</span>
+            </button>
+          </div>
+
           <div
             style={{
               backgroundColor: 'var(--color-bg-card)',

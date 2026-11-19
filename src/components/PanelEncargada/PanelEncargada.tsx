@@ -10,7 +10,8 @@ import {
   Check,
   Eye,
   Home,
-  ArrowDownCircle
+  ArrowDownCircle,
+  Calendar
 } from 'lucide-react';
 import styles from './PanelEncargada.module.css';
 import {
@@ -24,7 +25,12 @@ import {
   HORARIOS_SALIDA_CIUDAD,
   TODAS_LAS_PARADAS
 } from '../../types';
-import { apiService, getTodayDateStr } from '../../services/api';
+import {
+  apiService,
+  getTodayDateStr,
+  getTomorrowDateStr,
+  isTomorrowBookingAllowed
+} from '../../services/api';
 
 interface PanelEncargadaProps {
   controllerName: string;
@@ -40,11 +46,14 @@ export const PanelEncargada: React.FC<PanelEncargadaProps> = ({ controllerName }
   const [viewCompleted, setViewCompleted] = useState<boolean>(false);
 
   const todayStr = getTodayDateStr();
+  const tomorrowStr = getTomorrowDateStr();
+  const [targetDate, setTargetDate] = useState<string>(todayStr);
+  const isTomorrow = targetDate === tomorrowStr;
 
   const loadData = () => {
     setFamilias(apiService.getFamilias());
-    setHorarios(apiService.getHorariosDiarios(todayStr));
-    setCheckins(apiService.getCheckIns(todayStr));
+    setHorarios(apiService.getHorariosDiarios(targetDate));
+    setCheckins(apiService.getCheckIns(targetDate));
     setAvisos(apiService.getAvisos().filter((a) => !a.leido));
   };
 
@@ -53,7 +62,7 @@ export const PanelEncargada: React.FC<PanelEncargadaProps> = ({ controllerName }
     // Auto-refresh interval cada 10 segundos
     const interval = setInterval(loadData, 10000);
     return () => clearInterval(interval);
-  }, [todayStr]);
+  }, [targetDate, todayStr]);
 
   // Lista de horarios según sentido
   const availableTimes =
@@ -84,7 +93,7 @@ export const PanelEncargada: React.FC<PanelEncargadaProps> = ({ controllerName }
 
     familias.forEach((fam) => {
       fam.hijos.forEach((hijo) => {
-        const config = horarios.find((h) => h.idAlumno === hijo.id && h.fecha === todayStr);
+        const config = horarios.find((h) => h.idAlumno === hijo.id && h.fecha === targetDate);
         if (!config) return;
 
         // Comprobar si viaja en este sentido y coincide el horario
@@ -105,7 +114,7 @@ export const PanelEncargada: React.FC<PanelEncargadaProps> = ({ controllerName }
               c.idAlumno === hijo.id &&
               c.sentido === sentido &&
               c.horario === selectedTime &&
-              c.fecha === todayStr
+              c.fecha === targetDate
           );
           list.push({
             alumno: hijo,
@@ -130,8 +139,13 @@ export const PanelEncargada: React.FC<PanelEncargadaProps> = ({ controllerName }
     alumno: Hijo,
     parada: string
   ) => {
+    if (isTomorrow) {
+      alert('ℹ️ Este recorrido corresponde a Mañana. Las subidas se marcan en vivo el día del viaje.');
+      return;
+    }
+
     const nuevoCheck = apiService.registrarCheckIn({
-      fecha: todayStr,
+      fecha: targetDate,
       idAlumno: alumno.id,
       nombreAlumno: alumno.nombre,
       sentido,
@@ -213,6 +227,44 @@ export const PanelEncargada: React.FC<PanelEncargadaProps> = ({ controllerName }
 
       {/* Tarjeta de Control Principal */}
       <div className={styles.panelEncargada__controlCard}>
+        {/* Selector de Fecha: Hoy vs Mañana */}
+        <div className={styles.panelEncargada__dateSelector}>
+          <span className={styles.panelEncargada__dateLabel}>Fecha del recorrido:</span>
+          <button
+            type="button"
+            className={`${styles.panelEncargada__dateBtn} ${
+              !isTomorrow ? styles['panelEncargada__dateBtn--active'] : ''
+            }`}
+            onClick={() => setTargetDate(todayStr)}
+          >
+            <Calendar size={14} />
+            <span>🚌 Hoy ({todayStr})</span>
+          </button>
+          <button
+            type="button"
+            className={`${styles.panelEncargada__dateBtn} ${
+              isTomorrow ? styles['panelEncargada__dateBtn--active'] : ''
+            }`}
+            onClick={() => setTargetDate(tomorrowStr)}
+          >
+            <Calendar size={14} />
+            <span>📋 Mañana ({tomorrowStr})</span>
+            <span className={styles.panelEncargada__planBadge}>Planificación</span>
+          </button>
+        </div>
+
+        {isTomorrow && (
+          <div className={styles.panelEncargada__tomorrowNotice}>
+            <Calendar size={18} />
+            <span>
+              <strong>Planilla de Mañana ({tomorrowStr}):</strong>{' '}
+              {isTomorrowBookingAllowed()
+                ? 'Confirmaciones oficiales recibidas (a partir de las 18:30 hs). Listo para organizar el recorrido.'
+                : 'Visualizando confirmaciones anticipadas. El cierre de horarios para los padres es a partir de las 18:30 hs.'}
+            </span>
+          </div>
+        )}
+
         <div className={styles.panelEncargada__controlHeader}>
           <div className={styles.panelEncargada__titleGroup}>
             <Bus size={26} color="var(--color-primary)" />
@@ -387,14 +439,21 @@ export const PanelEncargada: React.FC<PanelEncargadaProps> = ({ controllerName }
                         </a>
                       </div>
 
-                      <button
-                        type="button"
-                        className={styles.panelEncargada__btnCheckIn}
-                        onClick={() => handleMarkSubida(alumno, parada.nombre)}
-                      >
-                        <Check size={16} />
-                        <span>✅ SUBIÓ AL TRANSPORTE</span>
-                      </button>
+                      {isTomorrow ? (
+                        <div className={styles.panelEncargada__scheduledBadge}>
+                          <Clock size={14} />
+                          <span>Anotado para Mañana ({selectedTime} hs)</span>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          className={styles.panelEncargada__btnCheckIn}
+                          onClick={() => handleMarkSubida(alumno, parada.nombre)}
+                        >
+                          <Check size={16} />
+                          <span>✅ SUBIÓ AL TRANSPORTE</span>
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>
