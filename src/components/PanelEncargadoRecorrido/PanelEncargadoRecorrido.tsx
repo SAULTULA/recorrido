@@ -10,7 +10,10 @@ import {
   DollarSign,
   Copy,
   Check,
-  MessageSquare
+  MessageSquare,
+  Trash2,
+  UserPlus,
+  ShieldCheck
 } from 'lucide-react';
 import styles from './PanelEncargadoRecorrido.module.css';
 import {
@@ -18,17 +21,29 @@ import {
   HorarioDiarioHijo,
   CheckInSubida,
   SentidoRecorrido,
+  PersonalStaff,
   HORARIOS_SALIDA_BARRIO,
   HORARIOS_SALIDA_CIUDAD
 } from '../../types';
 import { apiService, getTodayDateStr } from '../../services/api';
 
-export const PanelEncargadoRecorrido: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'MONITOREO' | 'FAMILIAS' | 'CUOTAS'>('MONITOREO');
+interface PanelEncargadoRecorridoProps {
+  onOpenRegisterPersonal?: () => void;
+  isSuperAdmin?: boolean;
+}
+
+export const PanelEncargadoRecorrido: React.FC<PanelEncargadoRecorridoProps> = ({
+  onOpenRegisterPersonal,
+  isSuperAdmin = false
+}) => {
+  const [activeTab, setActiveTab] = useState<'MONITOREO' | 'FAMILIAS' | 'PERSONAL' | 'CUOTAS'>(
+    'MONITOREO'
+  );
   const [sentido, setSentido] = useState<SentidoRecorrido>('SALIDA_BARRIO');
   const [selectedTime, setSelectedTime] = useState<string>('06:25');
 
   const [familias, setFamilias] = useState<Familia[]>([]);
+  const [personal, setPersonal] = useState<PersonalStaff[]>([]);
   const [horarios, setHorarios] = useState<HorarioDiarioHijo[]>([]);
   const [checkins, setCheckins] = useState<CheckInSubida[]>([]);
 
@@ -42,13 +57,14 @@ export const PanelEncargadoRecorrido: React.FC = () => {
 
   const loadData = () => {
     setFamilias(apiService.getFamilias());
+    setPersonal(apiService.getPersonal());
     setHorarios(apiService.getHorariosDiarios(todayStr));
     setCheckins(apiService.getCheckIns(todayStr));
   };
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 10000);
+    const interval = setInterval(loadData, 8000);
     return () => clearInterval(interval);
   }, [todayStr]);
 
@@ -75,6 +91,28 @@ export const PanelEncargadoRecorrido: React.FC = () => {
     apiService.setMontoCuota(newMonto);
   };
 
+  const handleDeleteFamilia = (id: string, nombre: string) => {
+    if (
+      window.confirm(
+        `¿Confirmas la eliminación permanente de la familia de ${nombre} y todos sus niños del sistema?`
+      )
+    ) {
+      apiService.deleteFamilia(id);
+      setFamilias(apiService.getFamilias());
+    }
+  };
+
+  const handleDeletePersonal = (id: string, nombre: string, rol: string) => {
+    if (
+      window.confirm(
+        `¿Confirmas la baja y eliminación de la encargada/personal ${nombre} (${rol})?`
+      )
+    ) {
+      apiService.deletePersonal(id);
+      setPersonal(apiService.getPersonal());
+    }
+  };
+
   /**
    * Genera el texto del mensaje formal y respetuoso para la cuota
    */
@@ -82,7 +120,7 @@ export const PanelEncargadoRecorrido: React.FC = () => {
     const nombresHijos = familia.hijos.map((h) => h.nombre).join(' y ');
     return `Estimado/a ${familia.jerarquia} ${familia.nombreTutor}:
 
-Esperamos se encuentre muy bien. Nos comunicamos desde la Coordinación del Recorrido Escolar para hacerle llegar el recordatorio correspondiente al abono del servicio de transporte escolar del alumno/a ${nombresHijos} para el período de ${mesCuota}.
+Esperamos se encuentre muy bien. Nos comunicamos desde la Coordinación del Transporte Escolar Tala para hacerle llegar el recordatorio correspondiente al abono del servicio de transporte escolar del alumno/a ${nombresHijos} para el período de ${mesCuota}.
 
 *Detalles para la transferencia:*
 • Monto sugerido: $${montoCuota}
@@ -94,7 +132,7 @@ Una vez realizado el abono, le solicitamos tenga a bien enviarnos el comprobante
 Agradecemos desde ya su constante compromiso y colaboración con el servicio.
 
 Atentamente,
-*Coordinación del Recorrido Escolar*`;
+*Coordinación del Transporte Escolar Tala*`;
   };
 
   const handleCopyMessage = (familia: Familia) => {
@@ -110,7 +148,7 @@ Atentamente,
     return `https://wa.me/${phone}?text=${text}`;
   };
 
-  // Filtrado de monitoreo (idéntico a encargada pero de solo lectura)
+  // Filtrado de monitoreo (solo lectura)
   const getMonitoreoData = () => {
     const list: {
       alumnoNombre: string;
@@ -177,9 +215,13 @@ Atentamente,
         <div className={styles.panelCoordinador__titleGroup}>
           <Bus size={28} color="var(--color-primary)" />
           <div>
-            <h2 className={styles.panelCoordinador__title}>Panel de Coordinación del Recorrido</h2>
+            <h2 className={styles.panelCoordinador__title}>
+              {isSuperAdmin
+                ? 'Panel de Control SuperAdmin Tala'
+                : 'Panel de Coordinación del Recorrido Tala'}
+            </h2>
             <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
-              Supervisión de viajes, administración de registros y cobro de cuotas
+              Supervisión de viajes, administración de altas/bajas de personal y alumnos
             </p>
           </div>
         </div>
@@ -192,8 +234,30 @@ Atentamente,
             title="Descargar planilla completa en formato CSV para Excel"
           >
             <Download size={16} />
-            <span>Descargar Lista General (Excel/CSV)</span>
+            <span>Descargar Padrón (Excel/CSV)</span>
           </button>
+
+          {onOpenRegisterPersonal && (
+            <button
+              type="button"
+              style={{
+                backgroundColor: 'var(--color-secondary)',
+                color: '#fff',
+                padding: 'var(--spacing-sm) var(--spacing-md)',
+                borderRadius: 'var(--radius-sm)',
+                fontSize: 'var(--font-size-sm)',
+                fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                cursor: 'pointer'
+              }}
+              onClick={onOpenRegisterPersonal}
+            >
+              <UserPlus size={16} />
+              <span>Alta de Personal</span>
+            </button>
+          )}
 
           <button
             type="button"
@@ -206,7 +270,7 @@ Atentamente,
         </div>
       </div>
 
-      {/* Pestañas de Navegación del Encargado */}
+      {/* Pestañas de Navegación del Encargado / SuperAdmin */}
       <div className={styles.panelCoordinador__navTabs}>
         <button
           type="button"
@@ -216,7 +280,7 @@ Atentamente,
           onClick={() => setActiveTab('MONITOREO')}
         >
           <Clock size={16} />
-          <span>Monitoreo de Recorrido en Vivo</span>
+          <span>Monitoreo en Vivo</span>
         </button>
 
         <button
@@ -227,7 +291,18 @@ Atentamente,
           onClick={() => setActiveTab('FAMILIAS')}
         >
           <Users size={16} />
-          <span>Gestión de Familias y Alumnos ({familias.length})</span>
+          <span>Familias y Alumnos ({familias.length})</span>
+        </button>
+
+        <button
+          type="button"
+          className={`${styles.panelCoordinador__navTab} ${
+            activeTab === 'PERSONAL' ? styles['panelCoordinador__navTab--active'] : ''
+          }`}
+          onClick={() => setActiveTab('PERSONAL')}
+        >
+          <ShieldCheck size={16} />
+          <span>Personal y Encargadas ({personal.length})</span>
         </button>
 
         <button
@@ -238,11 +313,11 @@ Atentamente,
           onClick={() => setActiveTab('CUOTAS')}
         >
           <MessageSquare size={16} />
-          <span>Avisos de Cuota y Cobranzas</span>
+          <span>Avisos de Cobro</span>
         </button>
       </div>
 
-      {/* TAB 1: MONITOREO EN VIVO (SOLO LECTURA, SIN BOTONERA DE MARCADO) */}
+      {/* TAB 1: MONITOREO EN VIVO */}
       {activeTab === 'MONITOREO' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
           <div
@@ -322,7 +397,6 @@ Atentamente,
             </div>
           </div>
 
-          {/* Tabla de Monitoreo */}
           <div className={styles.panelCoordinador__tableCard}>
             <div className={styles.panelCoordinador__tableWrap}>
               <table className={styles.panelCoordinador__table}>
@@ -394,21 +468,16 @@ Atentamente,
         </div>
       )}
 
-      {/* TAB 2: GESTIÓN DE FAMILIAS Y ALUMNOS */}
+      {/* TAB 2: GESTIÓN Y ELIMINACIÓN DE FAMILIAS Y ALUMNOS */}
       {activeTab === 'FAMILIAS' && (
         <div className={styles.panelCoordinador__tableCard}>
           <div className={styles.panelCoordinador__tableHeader}>
             <h3 style={{ fontWeight: 700, fontSize: 'var(--font-size-md)' }}>
               Padrón de Familias y Alumnos Registrados
             </h3>
-            <button
-              type="button"
-              className={styles.panelCoordinador__btnDownload}
-              onClick={handleDownloadCSV}
-            >
-              <Download size={14} />
-              <span>Exportar Padrón Completo</span>
-            </button>
+            <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
+              Total: {familias.length} familias
+            </span>
           </div>
 
           <div className={styles.panelCoordinador__tableWrap}>
@@ -419,59 +488,185 @@ Atentamente,
                   <th>Jerarquía</th>
                   <th>DNI</th>
                   <th>Celular</th>
-                  <th>Casa</th>
                   <th>Parada Fija</th>
-                  <th>Hijos Registrados</th>
+                  <th>Hijos</th>
+                  <th style={{ textAlign: 'right' }}>Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {familias.length === 0 ? (
                   <tr>
                     <td colSpan={7} style={{ textAlign: 'center', padding: 'var(--spacing-xl)', color: 'var(--color-text-muted)' }}>
-                      Aún no hay familias registradas. Los tutores aparecerán aquí automáticamente tras registrarse.
+                      Aún no hay familias registradas.
                     </td>
                   </tr>
                 ) : (
                   familias.map((f) => (
-                  <tr key={f.id}>
-                    <td style={{ fontWeight: 600 }}>{f.nombreTutor}</td>
-                    <td>
-                      <span
-                        className={styles.panelCoordinador__badge}
-                        style={{
-                          backgroundColor:
-                            f.jerarquia === 'Oficial' ? 'var(--color-primary-light)' : '#fef3c7',
-                          color:
-                            f.jerarquia === 'Oficial' ? 'var(--color-primary)' : '#92400e'
-                        }}
-                      >
-                        {f.jerarquia}
-                      </span>
-                    </td>
-                    <td>{f.dni}</td>
-                    <td>{f.celular}</td>
-                    <td>{f.numeroCasa || 'No especificada'}</td>
-                    <td style={{ fontWeight: 600, color: 'var(--color-primary)' }}>
-                      {f.paradaFija}
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        {f.hijos.map((h) => (
-                          <span key={h.id} style={{ fontSize: 'var(--font-size-xs)' }}>
-                            • <strong>{h.nombre}</strong> ({h.escuela})
-                          </span>
-                        ))}
-                      </div>
-                    </td>
-                  </tr>
-                )))}
+                    <tr key={f.id}>
+                      <td style={{ fontWeight: 600 }}>{f.nombreTutor}</td>
+                      <td>
+                        <span
+                          className={styles.panelCoordinador__badge}
+                          style={{
+                            backgroundColor:
+                              f.jerarquia === 'Oficial' ? 'var(--color-primary-light)' : '#fef3c7',
+                            color:
+                              f.jerarquia === 'Oficial' ? 'var(--color-primary)' : '#92400e'
+                          }}
+                        >
+                          {f.jerarquia}
+                        </span>
+                      </td>
+                      <td>{f.dni}</td>
+                      <td>{f.celular}</td>
+                      <td style={{ fontWeight: 600, color: 'var(--color-primary)' }}>
+                        {f.paradaFija}
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          {f.hijos.map((h) => (
+                            <span key={h.id} style={{ fontSize: 'var(--font-size-xs)' }}>
+                              • <strong>{h.nombre}</strong> ({h.escuela})
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <button
+                          type="button"
+                          style={{
+                            backgroundColor: '#fee2e2',
+                            color: '#b91c1c',
+                            border: '1px solid #fca5a5',
+                            padding: '4px 8px',
+                            borderRadius: 'var(--radius-xs)',
+                            fontSize: 'var(--font-size-xs)',
+                            fontWeight: 600,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            cursor: 'pointer'
+                          }}
+                          onClick={() => handleDeleteFamilia(f.id, f.nombreTutor)}
+                          title="Eliminar familia y alumnos del sistema"
+                        >
+                          <Trash2 size={13} />
+                          <span>Eliminar</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
         </div>
       )}
 
-      {/* TAB 3: RECORDATORIOS DE CUOTA Y ALIAS */}
+      {/* TAB 3: GESTIÓN Y ELIMINACIÓN DE PERSONAL / ENCARGADAS */}
+      {activeTab === 'PERSONAL' && (
+        <div className={styles.panelCoordinador__tableCard}>
+          <div className={styles.panelCoordinador__tableHeader}>
+            <h3 style={{ fontWeight: 700, fontSize: 'var(--font-size-md)' }}>
+              Personal de Control y Encargadas Registradas
+            </h3>
+            {onOpenRegisterPersonal && (
+              <button
+                type="button"
+                style={{
+                  backgroundColor: 'var(--color-primary)',
+                  color: '#fff',
+                  padding: '6px 12px',
+                  borderRadius: 'var(--radius-sm)',
+                  fontSize: 'var(--font-size-xs)',
+                  fontWeight: 600,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  cursor: 'pointer'
+                }}
+                onClick={onOpenRegisterPersonal}
+              >
+                <UserPlus size={14} />
+                <span>+ Registrar Nueva Encargada / Encargado</span>
+              </button>
+            )}
+          </div>
+
+          <div className={styles.panelCoordinador__tableWrap}>
+            <table className={styles.panelCoordinador__table}>
+              <thead>
+                <tr>
+                  <th>Nombre y Apellido</th>
+                  <th>Función / Puesto</th>
+                  <th>DNI</th>
+                  <th>Celular</th>
+                  <th>Fecha de Alta</th>
+                  <th style={{ textAlign: 'right' }}>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {personal.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} style={{ textAlign: 'center', padding: 'var(--spacing-xl)', color: 'var(--color-text-muted)' }}>
+                      No hay personal registrado aún. Haz clic en "Registrar Nueva Encargada" para dar de alta.
+                    </td>
+                  </tr>
+                ) : (
+                  personal.map((p) => (
+                    <tr key={p.id}>
+                      <td style={{ fontWeight: 600 }}>{p.nombre}</td>
+                      <td>
+                        <span
+                          className={styles.panelCoordinador__badge}
+                          style={{
+                            backgroundColor:
+                              p.rol === 'ENCARGADA_CONTROL' ? '#dcfce7' : 'var(--color-primary-light)',
+                            color:
+                              p.rol === 'ENCARGADA_CONTROL' ? '#15803d' : 'var(--color-primary)'
+                          }}
+                        >
+                          {p.rol === 'ENCARGADA_CONTROL'
+                            ? 'Encargada de Control'
+                            : 'Encargado de Recorrido'}
+                        </span>
+                      </td>
+                      <td>{p.dni}</td>
+                      <td>{p.celular}</td>
+                      <td>{p.fechaRegistro}</td>
+                      <td style={{ textAlign: 'right' }}>
+                        <button
+                          type="button"
+                          style={{
+                            backgroundColor: '#fee2e2',
+                            color: '#b91c1c',
+                            border: '1px solid #fca5a5',
+                            padding: '4px 8px',
+                            borderRadius: 'var(--radius-xs)',
+                            fontSize: 'var(--font-size-xs)',
+                            fontWeight: 600,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            cursor: 'pointer'
+                          }}
+                          onClick={() => handleDeletePersonal(p.id, p.nombre, p.rol)}
+                          title="Dar de baja y eliminar personal"
+                        >
+                          <Trash2 size={13} />
+                          <span>Eliminar</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 4: RECORDATORIOS DE CUOTA Y ALIAS */}
       {activeTab === 'CUOTAS' && (
         <div className={styles.panelCoordinador__feeBox}>
           <div className={styles.panelCoordinador__feeHeader}>
@@ -527,7 +722,6 @@ Atentamente,
             </div>
           </div>
 
-          {/* Vista previa del Mensaje Formal */}
           <div>
             <span
               style={{
@@ -538,7 +732,7 @@ Atentamente,
                 display: 'block'
               }}
             >
-              Plantilla de Mensaje Formal y Respetuoso (Se adapta a cada familia):
+              Plantilla de Mensaje Formal y Respetuoso:
             </span>
             <div className={styles.panelCoordinador__feePreview}>
               {getFormalMessage(familias[0] || {
@@ -555,7 +749,6 @@ Atentamente,
             </div>
           </div>
 
-          {/* Lista de Envío Directo por WhatsApp por Familia */}
           <div style={{ marginTop: 'var(--spacing-md)' }}>
             <h4
               style={{
@@ -586,59 +779,60 @@ Atentamente,
                     </tr>
                   ) : (
                     familias.map((fam) => (
-                    <tr key={fam.id}>
-                      <td style={{ fontWeight: 600 }}>{fam.nombreTutor} ({fam.jerarquia})</td>
-                      <td>{fam.hijos.map((h) => h.nombre).join(', ')}</td>
-                      <td>{fam.celular}</td>
-                      <td style={{ textAlign: 'right' }}>
-                        <div
-                          style={{
-                            display: 'inline-flex',
-                            gap: 8,
-                            justifyContent: 'flex-end'
-                          }}
-                        >
-                          <button
-                            type="button"
+                      <tr key={fam.id}>
+                        <td style={{ fontWeight: 600 }}>{fam.nombreTutor} ({fam.jerarquia})</td>
+                        <td>{fam.hijos.map((h) => h.nombre).join(', ')}</td>
+                        <td>{fam.celular}</td>
+                        <td style={{ textAlign: 'right' }}>
+                          <div
                             style={{
-                              padding: '6px 10px',
-                              borderRadius: 'var(--radius-sm)',
-                              border: '1px solid var(--color-border)',
-                              backgroundColor: 'var(--color-bg-card)',
-                              fontSize: 'var(--font-size-xs)',
                               display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: 4,
-                              cursor: 'pointer'
+                              gap: 8,
+                              justifyContent: 'flex-end'
                             }}
-                            onClick={() => handleCopyMessage(fam)}
                           >
-                            {copiedFamilyId === fam.id ? (
-                              <>
-                                <Check size={12} color="var(--color-success)" />
-                                <span style={{ color: 'var(--color-success)' }}>Copiado</span>
-                              </>
-                            ) : (
-                              <>
-                                <Copy size={12} />
-                                <span>Copiar</span>
-                              </>
-                            )}
-                          </button>
+                            <button
+                              type="button"
+                              style={{
+                                padding: '6px 10px',
+                                borderRadius: 'var(--radius-sm)',
+                                border: '1px solid var(--color-border)',
+                                backgroundColor: 'var(--color-bg-card)',
+                                fontSize: 'var(--font-size-xs)',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 4,
+                                cursor: 'pointer'
+                              }}
+                              onClick={() => handleCopyMessage(fam)}
+                            >
+                              {copiedFamilyId === fam.id ? (
+                                <>
+                                  <Check size={12} color="var(--color-success)" />
+                                  <span style={{ color: 'var(--color-success)' }}>Copiado</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Copy size={12} />
+                                  <span>Copiar</span>
+                                </>
+                              )}
+                            </button>
 
-                          <a
-                            href={getWaLink(fam)}
-                            target="_blank"
-                            rel="noreferrer"
-                            className={styles.panelCoordinador__btnWa}
-                          >
-                            <Send size={12} />
-                            <span>Enviar por WhatsApp</span>
-                          </a>
-                        </div>
-                      </td>
-                    </tr>
-                  )))}
+                            <a
+                              href={getWaLink(fam)}
+                              target="_blank"
+                              rel="noreferrer"
+                              className={styles.panelCoordinador__btnWa}
+                            >
+                              <Send size={12} />
+                              <span>Enviar por WhatsApp</span>
+                            </a>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

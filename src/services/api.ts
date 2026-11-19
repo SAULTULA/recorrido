@@ -3,18 +3,21 @@ import {
   HorarioDiarioHijo,
   CheckInSubida,
   AvisoAlerta,
-  BackendStatus
+  BackendStatus,
+  PersonalStaff
 } from '../types';
 
 const STORAGE_KEYS = {
   BACKEND_URL: 'recorrido_backend_url',
   FAMILIAS: 'recorrido_familias',
+  PERSONAL: 'recorrido_personal',
   HORARIOS: 'recorrido_horarios',
   CHECKINS: 'recorrido_checkins',
   AVISOS: 'recorrido_avisos',
   USER_SESSION: 'recorrido_user_session',
   ALIAS_PAGO: 'recorrido_alias_pago',
-  MONTO_CUOTA: 'recorrido_monto_cuota'
+  MONTO_CUOTA: 'recorrido_monto_cuota',
+  ADMIN_PASSWORD: 'recorrido_admin_password'
 };
 
 export function getTodayDateStr(): string {
@@ -147,6 +150,46 @@ export const apiService = {
         mode: 'no-cors'
       }).catch((e) => console.warn('Error syncing with Apps Script:', e));
     }
+  },
+
+  deleteFamilia(id: string): void {
+    const familias = this.getFamilias().filter((f) => f.id !== id);
+    localStorage.setItem(STORAGE_KEYS.FAMILIAS, JSON.stringify(familias));
+  },
+
+  getPersonal(): PersonalStaff[] {
+    const raw = localStorage.getItem(STORAGE_KEYS.PERSONAL);
+    if (!raw) return [];
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return [];
+    }
+  },
+
+  savePersonal(staff: PersonalStaff): void {
+    const list = this.getPersonal();
+    const index = list.findIndex((s) => s.id === staff.id || s.dni === staff.dni);
+    if (index >= 0) {
+      list[index] = staff;
+    } else {
+      list.push(staff);
+    }
+    localStorage.setItem(STORAGE_KEYS.PERSONAL, JSON.stringify(list));
+  },
+
+  deletePersonal(id: string): void {
+    const list = this.getPersonal().filter((s) => s.id !== id);
+    localStorage.setItem(STORAGE_KEYS.PERSONAL, JSON.stringify(list));
+  },
+
+  checkAdminPassword(pass: string): boolean {
+    const stored = localStorage.getItem(STORAGE_KEYS.ADMIN_PASSWORD) || 'admin123';
+    return pass.trim() === stored;
+  },
+
+  setAdminPassword(newPass: string): void {
+    localStorage.setItem(STORAGE_KEYS.ADMIN_PASSWORD, newPass.trim());
   },
 
   getHorariosDiarios(fecha: string = getTodayDateStr()): HorarioDiarioHijo[] {

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import styles from './App.module.css';
-import { UserRole, Familia, BackendStatus } from './types';
+import { UserRole, Familia, BackendStatus, PersonalStaff } from './types';
 import { apiService } from './services/api';
 import { Navbar } from './components/Navbar/Navbar';
 import { LoginModal } from './components/LoginModal/LoginModal';
 import { RegistroPadre } from './components/RegistroPadre/RegistroPadre';
+import { RegistroPersonal } from './components/RegistroPersonal/RegistroPersonal';
 import { PanelPadre } from './components/PanelPadre/PanelPadre';
 import { PanelEncargada } from './components/PanelEncargada/PanelEncargada';
 import { PanelEncargadoRecorrido } from './components/PanelEncargadoRecorrido/PanelEncargadoRecorrido';
@@ -16,23 +17,26 @@ export const App: React.FC = () => {
   const [userDni, setUserDni] = useState<string>('');
   const [currentFamilia, setCurrentFamilia] = useState<Familia | null>(null);
 
-  const [isRegistering, setIsRegistering] = useState<boolean>(false);
+  const [isRegisteringPadre, setIsRegisteringPadre] = useState<boolean>(false);
+  const [isRegisteringPersonal, setIsRegisteringPersonal] = useState<boolean>(false);
+  const [defaultPersonalRole, setDefaultPersonalRole] = useState<
+    'ENCARGADA_CONTROL' | 'ENCARGADO_RECORRIDO'
+  >('ENCARGADA_CONTROL');
+
   const [isBackendModalOpen, setIsBackendModalOpen] = useState<boolean>(false);
   const [backendStatus, setBackendStatus] = useState<BackendStatus>({
     online: true,
-    mode: 'LOCAL_MOCK',
+    mode: 'APPS_SCRIPT',
     latencyMs: 15,
-    message: 'Modo local activo. Conexión lista.'
+    message: 'Google Apps Script conectado.'
   });
 
-  // Determinar si son las 20:00 hs o posterior
   const [isNightTime, setIsNightTime] = useState<boolean>(false);
 
   useEffect(() => {
     const checkTime = () => {
       const now = new Date();
       const hour = now.getHours();
-      // Recordatorio activo desde las 20:00 hs en adelante
       setIsNightTime(hour >= 20 || hour < 6);
     };
 
@@ -41,7 +45,6 @@ export const App: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Verificar backend al iniciar
   useEffect(() => {
     apiService.checkHealth().then((status) => {
       setBackendStatus(status);
@@ -58,13 +61,8 @@ export const App: React.FC = () => {
     setUserName(nombre);
     setUserDni(dni);
 
-    if (role === 'PADRE') {
-      if (familia) {
-        setCurrentFamilia(familia);
-      } else {
-        // No tiene registro, abrir formulario de registro
-        setIsRegistering(true);
-      }
+    if (role === 'PADRE' && familia) {
+      setCurrentFamilia(familia);
     }
   };
 
@@ -73,15 +71,23 @@ export const App: React.FC = () => {
     setUserName('');
     setUserDni('');
     setCurrentFamilia(null);
-    setIsRegistering(false);
+    setIsRegisteringPadre(false);
+    setIsRegisteringPersonal(false);
   };
 
-  const handleRegisterSuccess = (familia: Familia) => {
+  const handleRegisterPadreSuccess = (familia: Familia) => {
     setCurrentFamilia(familia);
     setCurrentRole('PADRE');
     setUserName(familia.nombreTutor);
     setUserDni(familia.dni);
-    setIsRegistering(false);
+    setIsRegisteringPadre(false);
+  };
+
+  const handleRegisterPersonalSuccess = (staff: PersonalStaff) => {
+    setCurrentRole(staff.rol);
+    setUserName(staff.nombre);
+    setUserDni(staff.dni);
+    setIsRegisteringPersonal(false);
   };
 
   return (
@@ -97,28 +103,54 @@ export const App: React.FC = () => {
 
       <main className={styles.app__main}>
         {/* Caso 1: Pantalla de Registro de Padre */}
-        {isRegistering ? (
+        {isRegisteringPadre ? (
           <RegistroPadre
             initialDni={userDni}
             initialNombre={userName}
-            onSuccess={handleRegisterSuccess}
-            onCancel={() => setIsRegistering(false)}
+            onSuccess={handleRegisterPadreSuccess}
+            onCancel={() => setIsRegisteringPadre(false)}
+          />
+        ) : isRegisteringPersonal ? (
+          /* Caso 2: Pantalla de Registro de Personal (Encargada / Encargado) */
+          <RegistroPersonal
+            defaultRole={defaultPersonalRole}
+            onSuccess={handleRegisterPersonalSuccess}
+            onCancel={() => setIsRegisteringPersonal(false)}
           />
         ) : !currentRole ? (
-          /* Caso 2: Login con Nombre + DNI + Rol */
+          /* Caso 3: Login con Validación Estricta de Registro Previo */
           <LoginModal
             onLogin={handleLogin}
-            onGoToRegister={() => setIsRegistering(true)}
+            onGoToRegisterPadre={() => setIsRegisteringPadre(true)}
+            onGoToRegisterPersonal={(role) => {
+              setDefaultPersonalRole(role);
+              setIsRegisteringPersonal(true);
+            }}
           />
         ) : currentRole === 'PADRE' && currentFamilia ? (
-          /* Caso 3: Panel del Padre */
+          /* Caso 4: Panel del Padre con Botonera, Envío de Horarios y Estado de Subida */
           <PanelPadre familia={currentFamilia} isNightTime={isNightTime} />
         ) : currentRole === 'ENCARGADA_CONTROL' ? (
-          /* Caso 4: Panel de la Encargada de Control */
+          /* Caso 5: Panel de la Encargada de Control */
           <PanelEncargada controllerName={userName} />
         ) : currentRole === 'ENCARGADO_RECORRIDO' ? (
-          /* Caso 5: Panel del Encargado de Recorrido */
-          <PanelEncargadoRecorrido />
+          /* Caso 6: Panel del Encargado de Recorrido (con bajas de usuarios y encargadas) */
+          <PanelEncargadoRecorrido
+            isSuperAdmin={false}
+            onOpenRegisterPersonal={() => {
+              setDefaultPersonalRole('ENCARGADA_CONTROL');
+              setIsRegisteringPersonal(true);
+            }}
+          />
+        ) : currentRole === 'SUPERADMIN' ? (
+          /* Caso 7: Panel del SuperAdmin (control y eliminación total) */
+          <PanelEncargadoRecorrido
+            isSuperAdmin={true}
+            onOpenRegisterPersonal={() => {
+              setDefaultPersonalRole('ENCARGADA_CONTROL');
+              setIsRegisteringPersonal(true);
+            }}
+          />
         ) : (
           <div style={{ textAlign: 'center', padding: 'var(--spacing-2xl)' }}>
             Error al cargar vista. Por favor vuelva a iniciar sesión.

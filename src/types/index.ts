@@ -1,4 +1,8 @@
-export type UserRole = 'PADRE' | 'ENCARGADA_CONTROL' | 'ENCARGADO_RECORRIDO';
+export type UserRole =
+  | 'PADRE'
+  | 'ENCARGADA_CONTROL'
+  | 'ENCARGADO_RECORRIDO'
+  | 'SUPERADMIN';
 
 export type Jerarquia = 'Oficial' | 'Suboficial';
 
@@ -72,6 +76,15 @@ export interface Familia {
   hijos: Hijo[];
 }
 
+export interface PersonalStaff {
+  id: string;
+  nombre: string;
+  dni: string;
+  celular: string;
+  rol: 'ENCARGADA_CONTROL' | 'ENCARGADO_RECORRIDO';
+  fechaRegistro: string;
+}
+
 export type SentidoRecorrido = 'SALIDA_BARRIO' | 'SALIDA_CIUDAD';
 
 export interface HorarioDiarioHijo {
@@ -116,4 +129,3 @@ export interface BackendStatus {
   url?: string;
   message?: string;
 }
-

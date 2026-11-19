@@ -163,6 +163,144 @@
   color: var(--color-text-main);
 }
 
+/* ==========================================================================
+   ESTADO EN VIVO: SI SUBIÓ AL COLECTIVO
+   ========================================================================== */
+.panelPadre__liveStatusContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.panelPadre__liveStatusCard {
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.panelPadre__liveStatusCard--boarded {
+  background-color: #f0fdf4;
+  border-color: #86efac;
+  color: #166534;
+}
+
+.panelPadre__liveStatusCard--waiting {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+  color: #1e293b;
+}
+
+.panelPadre__liveStatusCard--none {
+  background-color: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
+.panelPadre__liveStatusIcon {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.panelPadre__liveStatusCard--boarded .panelPadre__liveStatusIcon {
+  background-color: #22c55e;
+  color: #ffffff;
+}
+
+.panelPadre__liveStatusCard--waiting .panelPadre__liveStatusIcon {
+  background-color: #3b82f6;
+  color: #ffffff;
+}
+
+.panelPadre__liveStatusCard--none .panelPadre__liveStatusIcon {
+  background-color: #ef4444;
+  color: #ffffff;
+}
+
+.panelPadre__liveStatusText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.panelPadre__liveStatusTitle {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-sm);
+}
+
+.panelPadre__liveStatusDesc {
+  font-size: var(--font-size-xs);
+  opacity: 0.9;
+}
+
+/* ==========================================================================
+   RESUMEN HORARIOS VIGENTES EN PANTALLA
+   ========================================================================== */
+.panelPadre__currentActiveCard {
+  background: linear-gradient(135deg, #1e3a8a, #1e40af);
+  color: var(--color-text-white);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.panelPadre__currentActiveHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding-bottom: var(--spacing-xs);
+}
+
+.panelPadre__currentActiveTitle {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.panelPadre__currentActiveGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+  padding-top: var(--spacing-2xs);
+}
+
+.panelPadre__currentActiveItem {
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.panelPadre__currentActiveLabel {
+  font-size: var(--font-size-xs);
+  opacity: 0.8;
+  text-transform: uppercase;
+  font-weight: var(--font-weight-semibold);
+}
+
+.panelPadre__currentActiveValue {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+}
+
 /* Aviso de Margen 30 Minutos */
 .panelPadre__marginNotice {
   background-color: var(--color-primary-light);
@@ -276,12 +414,6 @@
   color: var(--color-text-white);
 }
 
-.panelPadre__timeBtnDisabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-  pointer-events: none;
-}
-
 /* Botón Especial "No usa recorrido" */
 .panelPadre__noTravelBtn {
   margin-top: var(--spacing-xs);
@@ -311,12 +443,42 @@
   border-color: var(--color-danger);
 }
 
-.panelPadre__noTravelBtn--selected:hover {
-  background-color: var(--color-danger-hover);
-  color: var(--color-text-white);
+/* Botón Principal para Subir / Confirmar Horario */
+.panelPadre__submitBox {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  box-shadow: var(--shadow-md);
 }
 
-/* Tarjeta de Confirmación de Cambios */
+.panelPadre__btnSubmitHorario {
+  width: 100%;
+  max-width: 480px;
+  padding: var(--spacing-md) var(--spacing-xl);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: var(--color-text-white);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  box-shadow: 0 4px 6px rgba(13, 148, 136, 0.25);
+  transition: transform var(--transition-fast), filter var(--transition-fast);
+  cursor: pointer;
+}
+
+.panelPadre__btnSubmitHorario:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+}
+
 .panelPadre__statusCard {
   background-color: var(--color-bg-card);
   border: 1px solid var(--color-success-border);
@@ -354,4 +516,3 @@
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
 }
-

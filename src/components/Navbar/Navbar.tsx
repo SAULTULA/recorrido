@@ -74,6 +74,8 @@ export const Navbar: React.FC<NavbarProps> = ({
         return 'Encargada de Control';
       case 'ENCARGADO_RECORRIDO':
         return 'Encargado de Recorrido';
+      case 'SUPERADMIN':
+        return 'Super Administrador';
       default:
         return 'Sin Sesión';
     }
