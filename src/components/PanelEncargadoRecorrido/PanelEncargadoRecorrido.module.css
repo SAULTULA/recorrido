@@ -1,0 +1,246 @@
+/* ==========================================================================
+   PANEL ENCARGADO RECORRIDO - CSS MODULE (BEM)
+   ========================================================================== */
+
+.panelCoordinador {
+  max-width: 1100px;
+  margin: var(--spacing-xl) auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+/* Barra Superior de Herramientas */
+.panelCoordinador__topBar {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.panelCoordinador__titleGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.panelCoordinador__title {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-main);
+}
+
+.panelCoordinador__topActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.panelCoordinador__btnDownload {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--color-primary);
+  color: var(--color-text-white);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  transition: background-color var(--transition-fast);
+}
+
+.panelCoordinador__btnDownload:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.panelCoordinador__btnFeeReminder {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: #047857;
+  color: var(--color-text-white);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  transition: background-color var(--transition-fast);
+}
+
+.panelCoordinador__btnFeeReminder:hover {
+  background-color: #065f46;
+}
+
+/* Pestañas de Vista */
+.panelCoordinador__navTabs {
+  display: flex;
+  gap: var(--spacing-xs);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.panelCoordinador__navTab {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-base);
+  color: var(--color-text-muted);
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-bottom: none;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  transition: all var(--transition-fast);
+}
+
+.panelCoordinador__navTab--active {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+  border-color: var(--color-primary-border);
+  border-bottom: 3px solid var(--color-primary);
+  margin-bottom: -2px;
+}
+
+/* Modal o Sección de Cuota y Alias */
+.panelCoordinador__feeBox {
+  background-color: var(--color-bg-card);
+  border: 1px solid #10b981;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.panelCoordinador__feeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.panelCoordinador__feeTitle {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  color: #065f46;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.panelCoordinador__feeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.panelCoordinador__feeGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xs);
+}
+
+.panelCoordinador__feeLabel {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-main);
+}
+
+.panelCoordinador__feeInput {
+  padding: var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+}
+
+.panelCoordinador__feePreview {
+  background-color: #f0fdf4;
+  border: 1px dashed #34d399;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  font-size: var(--font-size-xs);
+  color: #065f46;
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+/* Tabla de Gestión de Familias y Niños */
+.panelCoordinador__tableCard {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.panelCoordinador__tableHeader {
+  padding: var(--spacing-md) var(--spacing-lg);
+  background-color: var(--color-bg-subtle);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.panelCoordinador__tableWrap {
+  overflow-x: auto;
+}
+
+.panelCoordinador__table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: var(--font-size-sm);
+}
+
+.panelCoordinador__table th {
+  background-color: var(--color-bg-subtle);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-muted);
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.panelCoordinador__table td {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+
+.panelCoordinador__table tr:hover {
+  background-color: var(--color-bg-subtle);
+}
+
+.panelCoordinador__badge {
+  font-size: var(--font-size-xs);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-weight: var(--font-weight-semibold);
+}
+
+.panelCoordinador__btnWa {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background-color: #25d366;
+  color: #ffffff;
+  border-radius: var(--radius-xs);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  transition: opacity var(--transition-fast);
+}
+
+.panelCoordinador__btnWa:hover {
+  opacity: 0.9;
+}
+

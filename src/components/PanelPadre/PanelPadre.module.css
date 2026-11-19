@@ -1,0 +1,357 @@
+/* ==========================================================================
+   PANEL PADRE - CSS MODULE (BEM)
+   ========================================================================== */
+
+.panelPadre {
+  max-width: 900px;
+  margin: var(--spacing-xl) auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+/* Banner de Alerta 20:00 hs */
+.panelPadre__reminderBanner {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border: 1px solid #f59e0b;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  color: #78350f;
+  box-shadow: var(--shadow-sm);
+}
+
+.panelPadre__reminderIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background-color: #f59e0b;
+  color: var(--color-text-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.panelPadre__reminderTitle {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-base);
+}
+
+.panelPadre__reminderDesc {
+  font-size: var(--font-size-sm);
+  color: #92400e;
+}
+
+/* Encabezado del Panel */
+.panelPadre__headerCard {
+  background-color: var(--color-bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.panelPadre__headerTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.panelPadre__familyTitle {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-main);
+}
+
+.panelPadre__familyBadges {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
+}
+
+.panelPadre__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2xs);
+  padding: var(--spacing-2xs) var(--spacing-sm);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+}
+
+.panelPadre__badge--primary {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary-border);
+}
+
+.panelPadre__badge--accent {
+  background-color: var(--color-accent-light);
+  color: var(--color-accent-hover);
+  border: 1px solid var(--color-accent);
+}
+
+/* Selector de Hijos (Pestañas) */
+.panelPadre__childrenTabs {
+  display: flex;
+  gap: var(--spacing-xs);
+  border-bottom: 2px solid var(--color-border);
+  padding-bottom: var(--spacing-xs);
+  overflow-x: auto;
+}
+
+.panelPadre__childTab {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-base);
+  color: var(--color-text-muted);
+  background-color: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-bottom: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.panelPadre__childTab:hover {
+  background-color: var(--color-bg-muted);
+  color: var(--color-text-main);
+}
+
+.panelPadre__childTab--active {
+  background-color: var(--color-bg-card);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  border-bottom: 3px solid var(--color-primary);
+  margin-bottom: -2px;
+}
+
+/* Info del Niño Seleccionado */
+.panelPadre__childDetails {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--color-bg-subtle);
+  border-radius: var(--radius-md);
+  flex-wrap: wrap;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.panelPadre__childDetailItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.panelPadre__childDetailItem strong {
+  color: var(--color-text-main);
+}
+
+/* Aviso de Margen 30 Minutos */
+.panelPadre__marginNotice {
+  background-color: var(--color-primary-light);
+  border: 1px solid var(--color-primary-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-xs);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+/* Contenedor de Botoneras */
+.panelPadre__routesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.panelPadre__routeCard {
+  background-color: var(--color-bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.panelPadre__routeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: var(--spacing-sm);
+}
+
+.panelPadre__routeTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.panelPadre__routeTitle {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-main);
+}
+
+.panelPadre__routeBadge {
+  font-size: var(--font-size-xs);
+  padding: var(--spacing-2xs) var(--spacing-sm);
+  border-radius: var(--radius-full);
+  font-weight: var(--font-weight-bold);
+}
+
+.panelPadre__routeBadge--active {
+  background-color: var(--color-success-light);
+  color: var(--color-success-hover);
+  border: 1px solid var(--color-success-border);
+}
+
+.panelPadre__routeBadge--none {
+  background-color: var(--color-danger-light);
+  color: var(--color-danger-hover);
+  border: 1px solid var(--color-danger-border);
+}
+
+/* Grilla de Botonera de Horarios */
+.panelPadre__buttonGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
+  gap: var(--spacing-xs);
+}
+
+.panelPadre__timeBtn {
+  padding: var(--spacing-sm) var(--spacing-xs);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg-card);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-main);
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.panelPadre__timeBtn:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+.panelPadre__timeBtn--selected {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-text-white);
+  box-shadow: 0 2px 4px rgba(30, 58, 138, 0.25);
+}
+
+.panelPadre__timeBtn--selected:hover {
+  background-color: var(--color-primary-hover);
+  color: var(--color-text-white);
+}
+
+.panelPadre__timeBtnDisabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Botón Especial "No usa recorrido" */
+.panelPadre__noTravelBtn {
+  margin-top: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--color-danger-border);
+  background-color: var(--color-bg-card);
+  color: var(--color-danger);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.panelPadre__noTravelBtn:hover {
+  background-color: var(--color-danger-light);
+  border-color: var(--color-danger);
+}
+
+.panelPadre__noTravelBtn--selected {
+  background-color: var(--color-danger);
+  color: var(--color-text-white);
+  border-color: var(--color-danger);
+}
+
+.panelPadre__noTravelBtn--selected:hover {
+  background-color: var(--color-danger-hover);
+  color: var(--color-text-white);
+}
+
+/* Tarjeta de Confirmación de Cambios */
+.panelPadre__statusCard {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-success-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.panelPadre__statusIcon {
+  width: 36px;
+  height: 36px;
+  background-color: var(--color-success-light);
+  color: var(--color-success-hover);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.panelPadre__statusInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.panelPadre__statusTitle {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-sm);
+  color: var(--color-success-hover);
+}
+
+.panelPadre__statusDesc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+

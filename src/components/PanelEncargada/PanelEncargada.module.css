@@ -1,0 +1,352 @@
+/* ==========================================================================
+   PANEL ENCARGADA - CSS MODULE (BEM)
+   ========================================================================== */
+
+.panelEncargada {
+  max-width: 1050px;
+  margin: var(--spacing-xl) auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+/* Banner de Alertas Pendientes */
+.panelEncargada__alertsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.panelEncargada__alertCard {
+  background-color: #fee2e2;
+  border-left: 4px solid var(--color-danger);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  box-shadow: var(--shadow-sm);
+  animation: slideIn 200ms ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.panelEncargada__alertContent {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.panelEncargada__alertIcon {
+  color: var(--color-danger);
+}
+
+.panelEncargada__alertText {
+  display: flex;
+  flex-direction: column;
+}
+
+.panelEncargada__alertTitle {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-sm);
+  color: #991b1b;
+}
+
+.panelEncargada__alertDesc {
+  font-size: var(--font-size-xs);
+  color: #7f1d1d;
+}
+
+.panelEncargada__alertDismissBtn {
+  font-size: var(--font-size-xs);
+  padding: var(--spacing-2xs) var(--spacing-sm);
+  background-color: rgba(220, 38, 38, 0.1);
+  color: #991b1b;
+  border-radius: var(--radius-xs);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+.panelEncargada__alertDismissBtn:hover {
+  background-color: rgba(220, 38, 38, 0.2);
+}
+
+/* Tarjeta Principal de Control de Horarios */
+.panelEncargada__controlCard {
+  background-color: var(--color-bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.panelEncargada__controlHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.panelEncargada__titleGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.panelEncargada__title {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-main);
+}
+
+/* Selector de Sentido (Ida Barrio vs Vuelta Ciudad) */
+.panelEncargada__senseSelector {
+  display: flex;
+  background-color: var(--color-bg-subtle);
+  padding: var(--spacing-2xs);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  gap: var(--spacing-2xs);
+}
+
+.panelEncargada__senseBtn {
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  transition: all var(--transition-fast);
+}
+
+.panelEncargada__senseBtn--active {
+  background-color: var(--color-primary);
+  color: var(--color-text-white);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Barra de Horarios Fijos */
+.panelEncargada__timeSelector {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  overflow-x: auto;
+  padding-bottom: var(--spacing-xs);
+}
+
+.panelEncargada__timeChip {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background-color: var(--color-bg-card);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-main);
+  cursor: pointer;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all var(--transition-fast);
+}
+
+.panelEncargada__timeChip:hover {
+  background-color: var(--color-bg-subtle);
+  border-color: var(--color-primary-border);
+}
+
+.panelEncargada__timeChip--selected {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-text-white);
+}
+
+.panelEncargada__cycleIndicator {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  padding: var(--spacing-2xs) var(--spacing-sm);
+  border-radius: var(--radius-xs);
+  background-color: var(--color-bg-subtle);
+  color: var(--color-text-muted);
+}
+
+/* Estadísticas de Ocupación */
+.panelEncargada__statsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--color-bg-subtle);
+  border-radius: var(--radius-md);
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.panelEncargada__statGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.panelEncargada__statItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+}
+
+.panelEncargada__statCount {
+  font-weight: var(--font-weight-bold);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+}
+
+.panelEncargada__statCount--pending {
+  background-color: var(--color-accent-light);
+  color: var(--color-accent-hover);
+}
+
+.panelEncargada__statCount--checked {
+  background-color: var(--color-success-light);
+  color: var(--color-success-hover);
+}
+
+/* Vista de Paradas y Alumnos */
+.panelEncargada__paradasList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.panelEncargada__paradaCard {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.panelEncargada__paradaHeader {
+  background: linear-gradient(135deg, #f8fafc, #edf2f7);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.panelEncargada__paradaTitle {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-md);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.panelEncargada__paradaBadge {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* Grilla de Alumnos por Parada */
+.panelEncargada__studentsGrid {
+  padding: var(--spacing-md);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.panelEncargada__studentCard {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  background-color: var(--color-bg-card);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.panelEncargada__studentCard:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary-border);
+}
+
+.panelEncargada__studentName {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-md);
+  color: var(--color-text-main);
+}
+
+.panelEncargada__studentSchool {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2xs);
+}
+
+.panelEncargada__tutorInfo {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-light);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background-color: var(--color-bg-subtle);
+  padding: var(--spacing-xs);
+  border-radius: var(--radius-xs);
+}
+
+.panelEncargada__btnCheckIn {
+  padding: var(--spacing-sm);
+  background-color: var(--color-success);
+  color: var(--color-text-white);
+  border-radius: var(--radius-sm);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  transition: background-color var(--transition-fast);
+  cursor: pointer;
+}
+
+.panelEncargada__btnCheckIn:hover {
+  background-color: var(--color-success-hover);
+}
+
+.panelEncargada__emptyState {
+  padding: var(--spacing-2xl);
+  text-align: center;
+  background-color: var(--color-bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--color-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  color: var(--color-text-muted);
+}
+
